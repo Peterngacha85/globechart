@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { -webkit-tap-highlight-color: transparent; }
+  body {
+    @apply bg-[#f3f0fb] text-ink antialiased;
+    font-family: 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  }
+  input, select, textarea { @apply outline-none; }
+}
+
+@layer components {
+  .card { @apply rounded-3xl bg-white/90 shadow-card ring-1 ring-brand-100/60; }
+  .label { @apply mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-slate-500; }
+  .field {
+    @apply w-full rounded-2xl border border-brand-100 bg-slate-50 px-4 py-3 text-[15px] text-ink placeholder:text-slate-400
+      transition focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-200;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold transition
+      disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary { @apply btn bg-brand-button text-white shadow-glow hover:brightness-110; }
+  .btn-ghost { @apply btn border border-brand-200 bg-white text-brand-700 hover:bg-brand-50; }
+  .btn-danger { @apply btn bg-rose-600 text-white hover:bg-rose-700; }
+  .btn-success { @apply btn bg-emerald-600 text-white hover:bg-emerald-700; }
+  .chip { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide; }
+}

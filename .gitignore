@@ -1,0 +1,18 @@
+# Secrets and local config
+.env
+.env.*
+!.env.example
+*.pem
+
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
+
+# Not for a public repo: reference screenshots of a third-party site, a saved logged-in Daraja portal page,
+# and the setup guide that contains a real person's name, email and phone number
+screenshorts for ui/
+Dashboard _ Daraja Developers' Portal*
+01-PROJECT-SETUP.md
+
+*.log
