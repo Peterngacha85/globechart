@@ -52,7 +52,7 @@ function Clock() {
   );
 }
 
-function Sidebar({ nav, onNavigate }) {
+function Sidebar({ nav, onNavigate, admin }) {
   const { logout } = useAuth();
   const navigate = useNavigate();
   return (
@@ -93,7 +93,7 @@ function Sidebar({ nav, onNavigate }) {
         </div>
       ))}
       <button
-        onClick={() => { logout(); navigate('/login'); }}
+        onClick={() => { logout(); navigate(admin ? '/admin/login' : '/login'); }}
         className="mt-6 flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold text-rose-600 hover:bg-rose-50"
       >
         <span className="grid h-8 w-8 place-items-center rounded-xl bg-rose-100"><LogOut className="h-4 w-4" /></span>
@@ -153,7 +153,7 @@ export default function Layout({ admin = false }) {
 
       <div className="mx-auto flex max-w-[1600px]">
         <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-72 shrink-0 border-r border-brand-100/70 bg-white/70 lg:block">
-          <Sidebar nav={nav} />
+          <Sidebar nav={nav} admin={admin} />
         </aside>
 
         {open && (
@@ -163,7 +163,7 @@ export default function Layout({ admin = false }) {
               <button className="absolute right-3 top-3 rounded-lg p-1 text-slate-500" onClick={() => setOpen(false)} aria-label="Close menu">
                 <X className="h-5 w-5" />
               </button>
-              <Sidebar nav={nav} onNavigate={() => setOpen(false)} />
+              <Sidebar nav={nav} admin={admin} onNavigate={() => setOpen(false)} />
             </div>
           </div>
         )}

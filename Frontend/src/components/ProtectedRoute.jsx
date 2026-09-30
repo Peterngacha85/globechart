@@ -7,7 +7,7 @@ export default function ProtectedRoute({ adminOnly = false }) {
   const location = useLocation();
 
   if (loading) return <PageLoader />;
-  if (!isAuthenticated) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  if (!isAuthenticated) return <Navigate to={adminOnly ? '/admin/login' : '/login'} replace state={{ from: location.pathname }} />;
   if (adminOnly && !isAdmin) return <Navigate to="/dashboard" replace />;
   return <Outlet />;
 }

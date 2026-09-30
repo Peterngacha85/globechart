@@ -27,6 +27,7 @@ export default function App() {
     <Routes>
       <Route element={<GuestRoute />}>
         <Route path="/login" element={<Login />} />
+        <Route path="/admin/login" element={<Login admin />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />

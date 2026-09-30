@@ -32,9 +32,17 @@ export function AuthProvider({ children }) {
     return () => window.removeEventListener('auth:expired', expire);
   }, []);
 
-  const login = useCallback(async (username, password, rememberMe) => {
+  // adminOnly: the admin sign-in page refuses member accounts before they become the signed-in user
+  const login = useCallback(async (username, password, rememberMe, { adminOnly = false } = {}) => {
     await authService.login(username, password, rememberMe);
-    return refreshUser();
+    if (!adminOnly) return refreshUser();
+    const profile = await authService.getProfile();
+    if (profile.role !== 'super_admin') {
+      authService.logout();
+      throw Object.assign(new Error('This sign-in page is for administrators only.'), { userMessage: true });
+    }
+    setUser(profile);
+    return profile;
   }, [refreshUser]);
 
   const register = useCallback(async (form) => {

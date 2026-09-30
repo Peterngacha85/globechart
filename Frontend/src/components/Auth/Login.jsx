@@ -7,7 +7,7 @@ import AuthShell from './AuthShell';
 import PasswordField from './PasswordField';
 import { ErrorNote, Spinner } from '../Shared/ui';
 
-export default function Login() {
+export default function Login({ admin = false }) {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -22,11 +22,11 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      const profile = await login(form.username.trim(), form.password, form.rememberMe);
+      const profile = await login(form.username.trim(), form.password, form.rememberMe, { adminOnly: admin });
       const fallback = profile.role === 'super_admin' ? '/admin' : '/dashboard';
       navigate(location.state?.from || fallback, { replace: true });
     } catch (err) {
-      setError(errorMessage(err, 'Login failed. Please try again.'));
+      setError(err.userMessage ? err.message : errorMessage(err, 'Login failed. Please try again.'));
     } finally {
       setLoading(false);
     }
@@ -34,9 +34,11 @@ export default function Login() {
 
   return (
     <AuthShell
-      subtitle="Member Portal"
-      heading="Sign in"
-      footer={<>Don't have an account? <Link to="/register" className="font-bold text-brand-600 hover:underline">Sign Up Free</Link></>}
+      subtitle={admin ? 'Admin Portal' : 'Member Portal'}
+      heading={admin ? 'Administrator sign in' : 'Sign in'}
+      footer={admin
+        ? <>Not an administrator? <Link to="/login" className="font-bold text-brand-600 hover:underline">Member sign in</Link></>
+        : <>Don't have an account? <Link to="/register" className="font-bold text-brand-600 hover:underline">Sign Up Free</Link></>}
     >
       <div className="mb-4 flex items-center gap-2 rounded-2xl bg-gradient-to-r from-purple-800 to-indigo-700 px-4 py-3 text-sm text-white">
         <Info className="h-4 w-4 shrink-0" /> Use your <b>username</b> and password to sign in

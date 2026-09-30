@@ -33,6 +33,7 @@ const renderApp = (initial, extra = null) =>
             <Routes>
               <Route element={<GuestRoute />}>
                 <Route path="/login" element={<Login />} />
+                <Route path="/admin/login" element={<Login admin />} />
                 <Route path="/register" element={<Register />} />
               </Route>
               <Route element={<ProtectedRoute />}>
@@ -102,6 +103,36 @@ describe('login', () => {
     await user.click(screen.getByRole('button', { name: /sign in/i }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Invalid username or password');
+  });
+});
+
+describe('admin login page', () => {
+  const signIn = async (role) => {
+    api.post.mockResolvedValue({ data: { data: { token: 'a', refreshToken: 'b' } } });
+    api.get.mockImplementation((url) => (url === '/users/profile' ? Promise.resolve({ data: { data: profile({ role }) } }) : Promise.resolve({ data: { data: { unreadCount: 0 } } })));
+    const user = userEvent.setup();
+    renderApp('/admin/login');
+    expect(screen.getByText('Admin Portal')).toBeInTheDocument();
+    await user.type(screen.getByLabelText(/username/i), 'someone');
+    await user.type(screen.getByLabelText(/^password/i), 'secret123');
+    await user.click(screen.getByRole('button', { name: /sign in/i }));
+  };
+
+  test('signed-out visitors to the admin area are sent to the admin login', async () => {
+    renderApp('/admin');
+    expect(await screen.findByText('Admin Portal')).toBeInTheDocument();
+  });
+
+  test('the admin signs in and lands on the admin area', async () => {
+    await signIn('super_admin');
+    expect(await screen.findByText('admin home')).toBeInTheDocument();
+  });
+
+  test('a member account is refused and left signed out', async () => {
+    await signIn('user');
+    expect(await screen.findByRole('alert')).toHaveTextContent(/administrators only/i);
+    expect(screen.queryByText('member home')).not.toBeInTheDocument();
+    expect(tokenStorage.get('refreshToken')).toBeNull();
   });
 });
 
