@@ -14,6 +14,10 @@ router.get('/withdrawals', admin.listWithdrawals);
 router.put('/withdrawals/:id/approve', admin.approveWithdrawal);
 router.put('/withdrawals/:id/reject', admin.rejectWithdrawal);
 
+router.get('/deposits', admin.listDeposits);
+router.put('/deposits/:id/approve', admin.approveDeposit);
+router.put('/deposits/:id/reject', admin.rejectDeposit);
+
 router.get('/analytics/finance', admin.financeAnalytics);
 
 router.get('/settings', admin.getSettings);

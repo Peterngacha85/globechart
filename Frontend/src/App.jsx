@@ -17,6 +17,7 @@ import NotificationsPage from './pages/user/NotificationsPage';
 import AdminOverview from './pages/admin/AdminOverview';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminWithdrawals from './pages/admin/AdminWithdrawals';
+import AdminDeposits from './pages/admin/AdminDeposits';
 import AdminProducts from './pages/admin/AdminProducts';
 import AdminSettings from './pages/admin/AdminSettings';
 import NotFoundPage from './pages/NotFoundPage';
@@ -51,6 +52,7 @@ export default function App() {
           <Route index element={<AdminOverview />} />
           <Route path="users" element={<AdminUsers />} />
           <Route path="withdrawals" element={<AdminWithdrawals />} />
+          <Route path="deposits" element={<AdminDeposits />} />
           <Route path="products" element={<AdminProducts />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>

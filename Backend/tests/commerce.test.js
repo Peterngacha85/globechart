@@ -78,6 +78,63 @@ describe('M-Pesa deposits', () => {
   });
 });
 
+describe('manual M-Pesa deposits', () => {
+  const { config } = require('../config/env');
+  const saved = { ...config.mpesa };
+  beforeEach(() => {
+    config.mpesa.mode = 'manual';
+    config.mpesa.manual = { number: '0700111222', name: 'Test Payee' };
+  });
+  after(() => Object.assign(config.mpesa, saved));
+
+  test('limits tell the app where to send money', async () => {
+    const alice = await makeUser('alice');
+    const res = await request(app).get('/api/finance/limits').set(alice.auth).expect(200);
+    expect(res.body.data.depositMethod).toBe('manual');
+    expect(res.body.data.manualPayment).toEqual({ number: '0700111222', name: 'Test Payee' });
+  });
+
+  test('a submitted code is credited only after an admin confirms it, and only once', async () => {
+    const admin = await makeAdmin();
+    const alice = await makeUser('alice');
+    const res = await request(app).post('/api/finance/recharge').set(alice.auth).send({ amount: 500, mpesaCode: 'tiu4ab12cd' });
+    expect(res.status).toBe(201);
+    const id = res.body.data.transactionId;
+    expect((await balances(alice)).main).toBe(0);
+
+    // Users cannot approve their own deposits
+    expect((await request(app).put(`/api/admin/deposits/${id}/approve`).set(alice.auth)).status).toBe(403);
+
+    const list = await request(app).get('/api/admin/deposits?status=pending').set(admin.auth).expect(200);
+    expect(list.body.data.deposits.map((d) => d.reference)).toEqual(['TIU4AB12CD']);
+
+    await request(app).put(`/api/admin/deposits/${id}/approve`).set(admin.auth).expect(200);
+    expect((await balances(alice)).main).toBe(500);
+    expect((await request(app).put(`/api/admin/deposits/${id}/approve`).set(admin.auth)).status).toBe(409);
+    expect((await balances(alice)).main).toBe(500);
+    expect(String((await Transaction.findById(id)).processedBy)).toBe(String(admin.id));
+  });
+
+  test('a code cannot be claimed twice and a rejected deposit credits nothing', async () => {
+    const admin = await makeAdmin();
+    const alice = await makeUser('alice');
+    const bob = await makeUser('bob');
+    const a = await request(app).post('/api/finance/recharge').set(alice.auth).send({ amount: 200, mpesaCode: 'TIU4AB12CD' });
+    expect((await request(app).post('/api/finance/recharge').set(bob.auth).send({ amount: 200, mpesaCode: 'TIU4AB12CD' })).status).toBe(409);
+
+    expect((await request(app).put(`/api/admin/deposits/${a.body.data.transactionId}/reject`).set(admin.auth).send({})).status).toBe(422);
+    await request(app).put(`/api/admin/deposits/${a.body.data.transactionId}/reject`).set(admin.auth).send({ reason: 'Code not found on statement' }).expect(200);
+    expect((await balances(alice)).main).toBe(0);
+    expect(await Notification.countDocuments({ user: alice.id, message: 'Code not found on statement' })).toBe(1);
+  });
+
+  test('requires a well-formed M-Pesa code', async () => {
+    const alice = await makeUser('alice');
+    expect((await request(app).post('/api/finance/recharge').set(alice.auth).send({ amount: 100 })).status).toBe(422);
+    expect((await request(app).post('/api/finance/recharge').set(alice.auth).send({ amount: 100, mpesaCode: 'ABC' })).status).toBe(422);
+  });
+});
+
 describe('store purchases and referral commissions', () => {
   test('pays L1/L2/L3 commissions out of a real sale and nothing beyond level 3', async () => {
     const admin = await makeAdmin();

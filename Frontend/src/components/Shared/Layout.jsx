@@ -31,6 +31,7 @@ const ADMIN_NAV = [
   { group: 'Admin', items: [
     { to: '/admin', label: 'Overview', icon: LayoutDashboard, end: true },
     { to: '/admin/users', label: 'Users', icon: Users },
+    { to: '/admin/deposits', label: 'Deposits', icon: CreditCard },
     { to: '/admin/withdrawals', label: 'Withdrawals', icon: Wallet },
     { to: '/admin/products', label: 'Products', icon: Package },
     { to: '/admin/settings', label: 'Settings', icon: Settings },

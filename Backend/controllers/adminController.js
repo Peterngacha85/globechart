@@ -12,7 +12,8 @@ const { escapeRegex, paginate } = require('../utils/helpers');
 const { DEFAULTS, getSettings } = require('../services/settings');
 const { approveWithdrawal, rejectWithdrawal } = require('../services/withdrawalService');
 const { productPayload, CATEGORIES } = require('./productController');
-const { withdrawalPayload } = require('./financeController');
+const { withdrawalPayload, txPayload } = require('./financeController');
+const { approveManualDeposit, rejectManualDeposit } = require('../services/depositService');
 
 const objectId = (id, label) => {
   if (!mongoose.isValidObjectId(id)) throw new ApiError(404, `${label} not found`);
@@ -118,6 +119,41 @@ exports.rejectWithdrawal = asyncHandler(async (req, res) => {
   const { reason } = z.object({ reason: z.string().trim().min(3, 'A reason is required').max(300) }).parse(req.body);
   const w = await rejectWithdrawal(req.params.id, req.user, { reason }, req.app.locals.io);
   sendSuccess(res, { withdrawalId: w._id, status: w.status }, 'Withdrawal rejected');
+});
+
+// ---------- Deposits (manual M-Pesa mode) ----------
+exports.listDeposits = asyncHandler(async (req, res) => {
+  const { page, limit, skip } = paginate(req.query);
+  const filter = { type: 'deposit' };
+  if (['pending', 'completed', 'failed'].includes(req.query.status)) filter.status = req.query.status;
+  const sort = req.query.sort === 'createdAt' ? 'createdAt' : '-createdAt';
+  const [total, items] = await Promise.all([
+    Transaction.countDocuments(filter),
+    Transaction.find(filter).sort(sort).skip(skip).limit(limit).populate('user', 'username phone'),
+  ]);
+  sendSuccess(res, {
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit),
+    deposits: items.map((t) => ({
+      ...txPayload(t),
+      mpesaPhone: t.mpesaPhone,
+      failureReason: t.failureReason,
+      user: t.user ? { userId: t.user._id, username: t.user.username, phone: t.user.phone } : null,
+    })),
+  });
+});
+
+exports.approveDeposit = asyncHandler(async (req, res) => {
+  const tx = await approveManualDeposit(req.params.id, req.user, req.app.locals.io);
+  sendSuccess(res, { transactionId: tx._id, status: tx.status }, 'Deposit confirmed');
+});
+
+exports.rejectDeposit = asyncHandler(async (req, res) => {
+  const { reason } = z.object({ reason: z.string().trim().min(3, 'A reason is required').max(300) }).parse(req.body);
+  const tx = await rejectManualDeposit(req.params.id, req.user, { reason }, req.app.locals.io);
+  sendSuccess(res, { transactionId: tx._id, status: tx.status }, 'Deposit rejected');
 });
 
 // ---------- Analytics ----------

@@ -4,7 +4,8 @@ const Withdrawal = require('../models/Withdrawal');
 const { ApiError, asyncHandler, sendSuccess } = require('../utils/ApiError');
 const { isKenyanPhone, normalizePhone, paginate } = require('../utils/helpers');
 const { getSettings } = require('../services/settings');
-const { initiateDeposit, settleDeposit } = require('../services/depositService');
+const { config } = require('../config/env');
+const { initiateDeposit, settleDeposit, submitManualDeposit } = require('../services/depositService');
 const { parseCallback, isValidCallbackSecret } = require('../services/mpesa');
 const { requestWithdrawal } = require('../services/withdrawalService');
 
@@ -16,6 +17,14 @@ const phoneField = z
 const rechargeSchema = z.object({
   amount: z.number().int('Amount must be a whole number of shillings'),
   mpesaPhone: phoneField.optional(),
+});
+// M-Pesa codes are 10 letters/digits, e.g. TIU4AB12CD
+const manualRechargeSchema = rechargeSchema.extend({
+  mpesaCode: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^[A-Z0-9]{10}$/, 'Enter the 10-character M-Pesa code from your confirmation SMS'),
 });
 const withdrawSchema = z.object({ amount: z.number().positive(), mpesaPhone: phoneField.optional() });
 
@@ -45,7 +54,10 @@ const withdrawalPayload = (w) => ({
 
 exports.getLimits = asyncHandler(async (req, res) => {
   const s = await getSettings();
+  const manual = config.mpesa.mode === 'manual';
   sendSuccess(res, {
+    depositMethod: manual ? 'manual' : 'stk',
+    manualPayment: manual ? { number: config.mpesa.manual.number, name: config.mpesa.manual.name } : null,
     minWithdrawal: s.min_withdrawal,
     maxWithdrawalDaily: s.max_withdrawal_daily,
     minDeposit: s.min_deposit,
@@ -55,12 +67,19 @@ exports.getLimits = asyncHandler(async (req, res) => {
 });
 
 exports.recharge = asyncHandler(async (req, res) => {
-  const { amount, mpesaPhone } = rechargeSchema.parse(req.body);
+  const manual = config.mpesa.mode === 'manual';
+  const { amount, mpesaPhone, mpesaCode } = (manual ? manualRechargeSchema : rechargeSchema).parse(req.body);
   const s = await getSettings();
   if (amount < s.min_deposit || amount > s.max_deposit) {
     throw new ApiError(422, `Deposit must be between Ksh ${s.min_deposit} and Ksh ${s.max_deposit}`);
   }
   const phone = mpesaPhone || req.user.mpesaPhone || req.user.phone;
+
+  if (manual) {
+    const tx = await submitManualDeposit(req.user, { amount, phone, code: mpesaCode }, req.app.locals.io);
+    return sendSuccess(res, { transactionId: tx._id, amount, status: tx.status }, 'Payment submitted. Your wallet is credited once it is confirmed.', 201);
+  }
+
   const tx = await initiateDeposit(req.user, { amount, phone }, req.app.locals.io);
   sendSuccess(res, { transactionId: tx._id, amount, status: tx.status, checkoutRequestId: tx.checkoutRequestId }, 'M-Pesa prompt sent. Enter your PIN to confirm.');
 });

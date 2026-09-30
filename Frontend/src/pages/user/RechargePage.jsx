@@ -6,6 +6,7 @@ import { useToast } from '../../context/ToastContext';
 import useFetch from '../../hooks/useFetch';
 import api, { errorMessage } from '../../services/api';
 import { ErrorNote, PageLoader, Spinner } from '../../components/Shared/ui';
+import CopyButton from '../../components/Shared/CopyButton';
 import { formatKES, formatKESShort } from '../../utils/format';
 
 const POLL_MS = 3000;
@@ -17,10 +18,12 @@ export default function RechargePage() {
   const limits = useFetch('/finance/limits');
   const [amount, setAmount] = useState('');
   const [phone, setPhone] = useState(user.mpesaPhone || user.phone);
+  const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState(null); // { id, amount, state: waiting|done|failed|timeout, reason }
   const timer = useRef(null);
+  const manual = limits.data?.depositMethod === 'manual';
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
@@ -52,6 +55,12 @@ export default function RechargePage() {
     if (!Number.isInteger(value) || value <= 0) return setError('Enter a whole number of shillings');
     setBusy(true);
     try {
+      if (manual) {
+        await api.post('/finance/recharge', { amount: value, mpesaPhone: phone.trim(), mpesaCode: code.trim() });
+        setPending({ amount: value, state: 'submitted' });
+        setCode('');
+        return;
+      }
       const { data } = await api.post('/finance/recharge', { amount: value, mpesaPhone: phone.trim() });
       setPending({ id: data.data.transactionId, amount: value, state: 'waiting' });
       poll(data.data.transactionId, value);
@@ -76,6 +85,11 @@ export default function RechargePage() {
 
         {pending ? (
           <div className="p-8 text-center">
+            {pending.state === 'submitted' && (<>
+              <CheckCircle2 className="mx-auto h-14 w-14 text-amber-500" />
+              <h2 className="mt-4 text-lg font-extrabold">Payment submitted</h2>
+              <p className="mt-1 text-sm text-slate-600">We'll check your M-Pesa code and add {formatKESShort(pending.amount)} to your main wallet once it is confirmed. You'll get a notification.</p>
+            </>)}
             {pending.state === 'waiting' && (<>
               <Spinner className="mx-auto h-12 w-12" />
               <h2 className="mt-4 text-lg font-extrabold">Check your phone</h2>
@@ -119,13 +133,32 @@ export default function RechargePage() {
                 <input id="phone" className="field pl-11" value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" required />
               </div>
             </div>
-            <div className="flex gap-3 rounded-2xl border-l-4 border-emerald-500 bg-emerald-50 p-4 text-sm text-emerald-900">
-              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-emerald-500 font-bold text-white">M</span>
-              <p><b>M-Pesa STK Push.</b> You'll get a payment prompt on this number. Enter your M-Pesa PIN to confirm. Money goes to your Main Wallet.</p>
-            </div>
-            <button className="btn-primary w-full !py-3.5" disabled={busy || !amount}>
-              {busy ? <Spinner className="!text-white" /> : <Zap className="h-5 w-5" />} Deposit {amount ? formatKESShort(Number(amount)) : ''} to Main Wallet
-            </button>
+            {manual ? (<>
+              <div className="rounded-2xl border-l-4 border-emerald-500 bg-emerald-50 p-4 text-sm text-emerald-900">
+                <p className="font-bold">How to pay</p>
+                <ol className="mt-1 list-decimal space-y-1 pl-5">
+                  <li>M-Pesa → <b>Send Money</b> to <b className="font-mono">{l.manualPayment.number}</b> ({l.manualPayment.name}).</li>
+                  <li>Send exactly {amount ? <b>{formatKESShort(Number(amount))}</b> : 'the amount above'} from the number above.</li>
+                  <li>Enter the code from your M-Pesa confirmation SMS below.</li>
+                </ol>
+                <CopyButton text={l.manualPayment.number} label="Copy number" className="btn-success mt-3 !px-4 !py-2" />
+              </div>
+              <div>
+                <label htmlFor="code" className="label">M-Pesa code</label>
+                <input id="code" className="field font-mono uppercase" value={code} onChange={(e) => setCode(e.target.value.replace(/[^a-z0-9]/gi, '').toUpperCase())} placeholder="e.g. TIU4AB12CD" maxLength={10} required />
+              </div>
+              <button className="btn-primary w-full !py-3.5" disabled={busy || !amount || code.length !== 10}>
+                {busy ? <Spinner className="!text-white" /> : <Zap className="h-5 w-5" />} I have paid {amount ? formatKESShort(Number(amount)) : ''}
+              </button>
+            </>) : (<>
+              <div className="flex gap-3 rounded-2xl border-l-4 border-emerald-500 bg-emerald-50 p-4 text-sm text-emerald-900">
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-emerald-500 font-bold text-white">M</span>
+                <p><b>M-Pesa STK Push.</b> You'll get a payment prompt on this number. Enter your M-Pesa PIN to confirm. Money goes to your Main Wallet.</p>
+              </div>
+              <button className="btn-primary w-full !py-3.5" disabled={busy || !amount}>
+                {busy ? <Spinner className="!text-white" /> : <Zap className="h-5 w-5" />} Deposit {amount ? formatKESShort(Number(amount)) : ''} to Main Wallet
+              </button>
+            </>)}
           </form>
         )}
       </div>

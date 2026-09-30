@@ -21,6 +21,8 @@ const transactionSchema = new mongoose.Schema(
     checkoutRequestId: { type: String, index: true, sparse: true },
     mpesaReceiptNumber: String,
     failureReason: String,
+    // Admin who confirmed or rejected a manual deposit
+    processedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 
     relatedProduct: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
     relatedUser: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
