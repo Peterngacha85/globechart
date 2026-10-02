@@ -110,6 +110,7 @@ const STATUS_TONE = {
   active: 'green', completed: 'green', approved: 'green',
   pending: 'amber', inactive: 'gray', reserved: 'purple', submitted: 'amber', paused: 'amber', expired: 'gray', archived: 'gray',
   hired: 'green', not_selected: 'gray', no_response: 'gray',
+  registered: 'purple', attended: 'green', absent: 'red', scheduled: 'purple',
   suspended: 'red', banned: 'red', failed: 'red', rejected: 'red', cancelled: 'gray',
 };
 

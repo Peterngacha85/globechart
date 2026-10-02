@@ -3,6 +3,7 @@ const admin = require('../controllers/adminController');
 const hotels = require('../controllers/hotelController');
 const chatJobs = require('../controllers/chatJobController');
 const spin = require('../controllers/spinController');
+const trainings = require('../controllers/trainingController');
 const { protect, adminOnly } = require('../middleware/auth.middleware');
 
 const router = express.Router();
@@ -50,5 +51,15 @@ router.delete('/chat-businesses/:id', chatJobs.adminArchiveBusiness);
 router.get('/job-applications', chatJobs.adminListApplications);
 
 router.get('/spin/summary', spin.adminSummary);
+
+router.get('/trainings', trainings.adminList);
+router.post('/trainings', trainings.adminCreate);
+router.put('/trainings/:id', trainings.adminUpdate);
+router.post('/trainings/:id/cancel', trainings.adminCancel);
+router.get('/trainings/:id/registrations', trainings.adminRegistrations);
+router.post('/trainings/:id/check-in', trainings.adminCheckIn);
+router.post('/trainings/:id/undo-check-in', trainings.adminUndoCheckIn);
+router.post('/trainings/:id/complete', trainings.adminComplete);
+router.post('/trainings/:id/certify', trainings.adminCertify);
 
 module.exports = router;

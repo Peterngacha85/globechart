@@ -7,7 +7,7 @@ import { formatDateTime, formatKESShort } from '../../utils/format';
 
 const TYPE_LABEL = {
   deposit: 'Deposit', withdrawal: 'Withdrawal', purchase: 'Purchase', commission: 'Commission', refund: 'Refund',
-  review_fee: 'Review fee', review_bonus: 'Review bonus', unlock_fee: 'Unlock fee', spin_prize: 'Spin prize',
+  review_fee: 'Review fee', review_bonus: 'Review bonus', unlock_fee: 'Unlock fee', spin_prize: 'Spin prize', training_fee: 'Training fee',
 };
 const CREDIT_TYPES = ['deposit', 'commission', 'refund', 'review_bonus', 'spin_prize'];
 

@@ -94,15 +94,26 @@ Every refund (chat jobs and hotel reviews) is a `refund` transaction with the re
 
 ## Lucky spin
 
-Every member gets **3 free spins a day** (reset at midnight Africa/Nairobi). Each spin wins bonus credit: Ksh 30 (70%), 50 (20%), 100 (7%), 200 (2%) or 300 (1%), an average of Ksh 45. The server draws a cryptographic random number from 0 to 9,999 and the prize is the range it falls in; the wheel's slices are sized by those chances and it stops where the roll landed. Every spin's roll is stored and shown in the member's history.
+Every member gets **3 free spins a day** (reset at midnight Africa/Nairobi). The wheel has **40 equal slices** carrying Ksh 30, 35, 45, 50, 55, 60, 70, 80, 90, 100, 150, 210 and 300; a prize's chance is how many slices carry it (Ksh 30 is on 14 slices = 35%; 150, 210 and 300 are on one each = 2.5%), an average of Ksh 58.25. The layout is `WHEEL` in `Backend/services/spinService.js`, and the members' wheel is drawn from it. The server draws a cryptographic random number from 0 to 9,999; every 250 numbers is one slice, clockwise from the top, and the wheel stops where the roll landed. Every spin's roll and slice are stored and shown in the member's history.
 
 The admin sets a **daily prize budget** for all members (`spin_daily_budget`, default Ksh 2,000) in **Admin → Lucky Spin**. Spins pause for the day once less than the top prize is left, so the published odds never change. The page also shows credit given, credit spent on fees, and credit members still hold.
 
 Spins are free on purpose. Paying to spin for a prize of value (cash or credit that pays for things) is gambling and needs a BCLB licence in Kenya.
 
+## AI prompt training
+
+The admin runs **in-person prompt-writing classes** and lists them in **Admin → AI Prompt Training** (title, venue, map link, start time, length, seats, fee). Members book a seat for the registration fee (default Ksh 100, bonus credit first) and get an 8-character **ticket code**.
+
+- A member who cancels at least **24 hours** before the class is refunded and the seat frees up; later cancellations and no-shows are not refunded.
+- If the admin cancels a session, everyone booked is refunded automatically, with her reason.
+- On the day she checks people in by ticket code (or from the list), then **completes** the session; anyone not checked in is marked absent.
+- She can issue attendees a **certificate** with a code (`GC-…`). Anyone can check it at `/verify/<code>` without an account, and the page prints as the certificate.
+
+Practice prompts are done in class; members are not paid for prompts.
+
 ## Not built (yet)
 
-The reference screenshots also showed other earning tasks (Y99, AI training), an activation-fee referral scheme, paid spins / real-money roulette, and a "just withdrawn" popup. These are not built. Any payout must be funded by a real outside source (as hotel bonuses are funded by the admin and hotels), never by other members' fees, or it becomes a pyramid/Ponzi structure and users lose money.
+The reference screenshots also showed other earning tasks (Y99, paid AI-training tasks), an activation-fee referral scheme, paid spins / real-money roulette, and a "just withdrawn" popup. These are not built. Any payout must be funded by a real outside source (as hotel bonuses are funded by the admin and hotels), never by other members' fees, or it becomes a pyramid/Ponzi structure and users lose money.
 
 ## API
 

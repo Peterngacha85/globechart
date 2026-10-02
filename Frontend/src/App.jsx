@@ -16,6 +16,9 @@ import BusinessInbox, { BusinessChatPage } from './pages/business/BusinessInbox'
 import AdminChatJobs, { AdminChatPage } from './pages/admin/AdminChatJobs';
 import SpinPage from './pages/user/SpinPage';
 import AdminSpin from './pages/admin/AdminSpin';
+import TrainingPage from './pages/user/TrainingPage';
+import AdminTrainings from './pages/admin/AdminTrainings';
+import VerifyCertificatePage from './pages/VerifyCertificatePage';
 import RechargePage from './pages/user/RechargePage';
 import WithdrawPage from './pages/user/WithdrawPage';
 import HistoryPage from './pages/user/HistoryPage';
@@ -53,6 +56,7 @@ export default function App() {
           <Route path="jobs" element={<JobsPage />} />
           <Route path="jobs/chat/:id" element={<MemberChatPage />} />
           <Route path="spin" element={<SpinPage />} />
+          <Route path="training" element={<TrainingPage />} />
           <Route path="recharge" element={<RechargePage />} />
           <Route path="withdraw" element={<WithdrawPage />} />
           <Route path="history" element={<HistoryPage />} />
@@ -72,6 +76,7 @@ export default function App() {
           <Route path="chat-jobs" element={<AdminChatJobs />} />
           <Route path="chat-jobs/chat/:id" element={<AdminChatPage />} />
           <Route path="spin" element={<AdminSpin />} />
+          <Route path="training" element={<AdminTrainings />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>
       </Route>
@@ -82,6 +87,9 @@ export default function App() {
           <Route path="chats/:id" element={<BusinessChatPage />} />
         </Route>
       </Route>
+
+      {/* Public: certificate verification for employers, no account needed */}
+      <Route path="/verify/:code" element={<VerifyCertificatePage />} />
 
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<NotFoundPage />} />
