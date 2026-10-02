@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, Coffee, Link2, Send, ShoppingBag, TrendingUp, Users, Wallet } from 'lucide-react';
+import { ArrowUpRight, Coffee, Hotel, Link2, Send, ShoppingBag, TrendingUp, Users, Wallet } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import useFetch from '../../hooks/useFetch';
 import { useSocketEvent } from '../../context/LiveContext';
@@ -55,17 +55,17 @@ export default function DashboardPage() {
       {s && (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <GradientStat tone="green" label="Available balance" icon={TrendingUp} value={formatKES(s.availableBalance)} hint={`Withdrawable via M-Pesa · min Ksh ${s.minWithdrawal}`} />
-          <GradientStat tone="purple" label="Today's earnings" icon={ArrowUpRight} value={formatKES(s.todaysEarnings)} hint="Commissions credited today (Africa/Nairobi)" />
+          <GradientStat tone="purple" label="Today's earnings" icon={ArrowUpRight} value={formatKES(s.todaysEarnings)} hint="Commissions and review bonuses today (Africa/Nairobi)" />
           <GradientStat tone="pink" label="Total withdrawn" icon={Send} value={formatKES(s.totalWithdrawn)} hint="Paid out to your M-Pesa" />
-          <GradientStat tone="violet" label="Lifetime confirmed" icon={Wallet} value={formatKES(s.lifetimeConfirmed)} hint="All-time commissions earned" />
+          <GradientStat tone="violet" label="Lifetime confirmed" icon={Wallet} value={formatKES(s.lifetimeConfirmed)} hint="All-time commissions and review bonuses" />
         </div>
       )}
 
       <div className="grid gap-6 lg:grid-cols-3">
         <section className="card p-5 lg:col-span-2">
-          <h2 className="text-lg font-extrabold">Commissions by level</h2>
-          <p className="text-sm text-slate-500">Earned when someone in your network buys a product</p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <h2 className="text-lg font-extrabold">Earnings</h2>
+          <p className="text-sm text-slate-500">Commissions when someone in your network buys a product, plus approved hotel review bonuses</p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {[['L1', 'Direct', e?.level1], ['L2', 'Indirect', e?.level2], ['L3', 'Extended', e?.level3]].map(([tag, name, v]) => (
               <div key={tag} className="rounded-2xl bg-gradient-to-br from-brand-50 to-white p-4 ring-1 ring-brand-100">
                 <span className="chip bg-brand-100 text-brand-700">{tag}</span>
@@ -73,6 +73,11 @@ export default function DashboardPage() {
                 <p className="text-xs text-slate-500">{name} · {v?.count || 0} sale{v?.count === 1 ? '' : 's'}</p>
               </div>
             ))}
+            <Link to="/dashboard/hotels" className="rounded-2xl bg-gradient-to-br from-emerald-50 to-white p-4 ring-1 ring-emerald-100 hover:ring-emerald-300">
+              <span className="chip bg-emerald-100 text-emerald-700"><Hotel className="mr-1 h-3 w-3" /> Hotels</span>
+              <p className="mt-3 text-xl font-extrabold">{formatKESShort(e?.hotelReviews?.amount)}</p>
+              <p className="text-xs text-slate-500">Reviews · {e?.hotelReviews?.count || 0} approved</p>
+            </Link>
           </div>
           {!e?.totalEarnings && (
             <div className="mt-5 rounded-2xl bg-brand-50 p-4 text-center">

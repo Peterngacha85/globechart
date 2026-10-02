@@ -9,6 +9,8 @@ const app = express();
 
 app.use(helmet());
 app.use(cors({ origin: config.corsOrigins, credentials: true }));
+// Review submissions carry a compressed photo; everything else stays small
+app.use('/api/hotels', express.json({ limit: '2mb' }));
 app.use(express.json({ limit: '100kb' }));
 
 const apiLimiter = rateLimit({
@@ -29,6 +31,7 @@ app.use('/api/notifications', require('./routes/notifications.routes'));
 app.use('/api/dashboard', require('./routes/dashboard.routes'));
 app.use('/api/finance', require('./routes/finance.routes'));
 app.use('/api/products', require('./routes/products.routes'));
+app.use('/api/hotels', require('./routes/hotels.routes'));
 app.use('/api/admin', require('./routes/admin.routes'));
 
 app.use(notFound);

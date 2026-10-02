@@ -1,4 +1,4 @@
-import { Loader2, Inbox } from 'lucide-react';
+import { Loader2, Inbox, Star } from 'lucide-react';
 
 export const APP_NAME = import.meta.env.VITE_APP_NAME || 'Globechart';
 
@@ -108,12 +108,30 @@ const CHIP_TONES = {
 };
 const STATUS_TONE = {
   active: 'green', completed: 'green', approved: 'green',
-  pending: 'amber', inactive: 'gray',
+  pending: 'amber', inactive: 'gray', reserved: 'purple', submitted: 'amber', paused: 'amber', expired: 'gray', archived: 'gray',
   suspended: 'red', banned: 'red', failed: 'red', rejected: 'red', cancelled: 'gray',
 };
 
 export function StatusChip({ status, label }) {
   return <span className={`chip ${CHIP_TONES[STATUS_TONE[status] || 'gray']}`}>{label || status}</span>;
+}
+
+/** Read-only star rating, or a picker when `onChange` is given. */
+export function Stars({ value = 0, onChange, size = 'h-4 w-4' }) {
+  return (
+    <span className="inline-flex items-center gap-0.5" role={onChange ? 'radiogroup' : 'img'} aria-label={onChange ? 'Rating' : `${value} out of 5 stars`}>
+      {[1, 2, 3, 4, 5].map((n) => {
+        const icon = <Star className={`${size} ${n <= Math.round(value) ? 'fill-amber-400 text-amber-400' : 'text-slate-300'}`} />;
+        return onChange ? (
+          <button key={n} type="button" role="radio" aria-checked={n === value} aria-label={`${n} star${n > 1 ? 's' : ''}`} onClick={() => onChange(n)} className="p-0.5">
+            {icon}
+          </button>
+        ) : (
+          <span key={n}>{icon}</span>
+        );
+      })}
+    </span>
+  );
 }
 
 export function Pagination({ page, totalPages, onChange }) {

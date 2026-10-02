@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Bell, ChevronRight, CreditCard, History, Home, Layers, LayoutDashboard, LogOut, Menu, Package, PackageOpen,
+  Bell, ChevronRight, CreditCard, History, Home, Hotel, Layers, LayoutDashboard, LogOut, Menu, Package, PackageOpen,
   Send, Settings, ShoppingBag, Store, UserRound, Users, Wallet, X,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -19,6 +19,7 @@ const USER_NAV = [
     { to: '/dashboard/store', label: 'Products', icon: Store },
     { to: '/dashboard/library', label: 'My Library', icon: PackageOpen },
   ] },
+  { group: 'Earn', items: [{ to: '/dashboard/hotels', label: 'Hotel Reviews', icon: Hotel }] },
   { group: 'Finance', items: [
     { to: '/dashboard/withdraw', label: 'Withdraw', icon: Send },
     { to: '/dashboard/recharge', label: 'Recharge', icon: CreditCard },
@@ -34,6 +35,7 @@ const ADMIN_NAV = [
     { to: '/admin/deposits', label: 'Deposits', icon: CreditCard },
     { to: '/admin/withdrawals', label: 'Withdrawals', icon: Wallet },
     { to: '/admin/products', label: 'Products', icon: Package },
+    { to: '/admin/hotels', label: 'Hotel Reviews', icon: Hotel },
     { to: '/admin/settings', label: 'Settings', icon: Settings },
   ] },
 ];

@@ -5,8 +5,11 @@ import useFetch from '../../hooks/useFetch';
 import { EmptyState, ErrorNote, PageLoader, Pagination, StatusChip } from '../../components/Shared/ui';
 import { formatDateTime, formatKESShort } from '../../utils/format';
 
-const TYPE_LABEL = { deposit: 'Deposit', withdrawal: 'Withdrawal', purchase: 'Purchase', commission: 'Commission', refund: 'Refund' };
-const CREDIT_TYPES = ['deposit', 'commission', 'refund'];
+const TYPE_LABEL = {
+  deposit: 'Deposit', withdrawal: 'Withdrawal', purchase: 'Purchase', commission: 'Commission', refund: 'Refund',
+  review_fee: 'Review fee', review_bonus: 'Review bonus',
+};
+const CREDIT_TYPES = ['deposit', 'commission', 'refund', 'review_bonus'];
 
 function Withdrawals() {
   const [page, setPage] = useState(1);

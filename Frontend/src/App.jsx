@@ -9,6 +9,8 @@ import TeamPage from './pages/user/TeamPage';
 import LevelsPage from './pages/user/LevelsPage';
 import StorePage from './pages/user/StorePage';
 import LibraryPage from './pages/user/LibraryPage';
+import HotelsPage from './pages/user/HotelsPage';
+import HotelPage from './pages/user/HotelPage';
 import RechargePage from './pages/user/RechargePage';
 import WithdrawPage from './pages/user/WithdrawPage';
 import HistoryPage from './pages/user/HistoryPage';
@@ -19,6 +21,7 @@ import AdminUsers from './pages/admin/AdminUsers';
 import AdminWithdrawals from './pages/admin/AdminWithdrawals';
 import AdminDeposits from './pages/admin/AdminDeposits';
 import AdminProducts from './pages/admin/AdminProducts';
+import AdminHotels from './pages/admin/AdminHotels';
 import AdminSettings from './pages/admin/AdminSettings';
 import NotFoundPage from './pages/NotFoundPage';
 
@@ -40,6 +43,8 @@ export default function App() {
           <Route path="levels" element={<LevelsPage />} />
           <Route path="store" element={<StorePage />} />
           <Route path="library" element={<LibraryPage />} />
+          <Route path="hotels" element={<HotelsPage />} />
+          <Route path="hotels/:id" element={<HotelPage />} />
           <Route path="recharge" element={<RechargePage />} />
           <Route path="withdraw" element={<WithdrawPage />} />
           <Route path="history" element={<HistoryPage />} />
@@ -55,6 +60,7 @@ export default function App() {
           <Route path="withdrawals" element={<AdminWithdrawals />} />
           <Route path="deposits" element={<AdminDeposits />} />
           <Route path="products" element={<AdminProducts />} />
+          <Route path="hotels" element={<AdminHotels />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>
       </Route>

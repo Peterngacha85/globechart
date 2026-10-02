@@ -16,9 +16,13 @@ async function activeDirectReferrals(userId) {
 
 exports.summary = asyncHandler(async (req, res) => {
   const u = req.user;
-  const [today, txCount, referrals, settings] = await Promise.all([
+  const [today, reviewBonusToday, txCount, referrals, settings] = await Promise.all([
     Commission.aggregate([
       { $match: { user: u._id, createdAt: { $gte: startOfDayNairobi() } } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]),
+    Transaction.aggregate([
+      { $match: { user: u._id, type: 'review_bonus', status: 'completed', createdAt: { $gte: startOfDayNairobi() } } },
       { $group: { _id: null, total: { $sum: '$amount' } } },
     ]),
     Transaction.countDocuments({ user: u._id }),
@@ -33,7 +37,7 @@ exports.summary = asyncHandler(async (req, res) => {
   sendSuccess(res, {
     availableBalance: u.commissionWallet.balance,
     mainBalance: u.mainWallet.balance,
-    todaysEarnings: today[0]?.total || 0,
+    todaysEarnings: (today[0]?.total || 0) + (reviewBonusToday[0]?.total || 0),
     totalWithdrawn: u.totalWithdrawn,
     lifetimeConfirmed: u.commissionWallet.totalEarned,
     withdrawnToday: withdrawnToday[0]?.total || 0,
@@ -46,9 +50,15 @@ exports.summary = asyncHandler(async (req, res) => {
 });
 
 exports.earnings = asyncHandler(async (req, res) => {
-  const rows = await Commission.aggregate([
-    { $match: { user: req.user._id } },
-    { $group: { _id: '$level', amount: { $sum: '$amount' }, count: { $sum: 1 } } },
+  const [rows, [reviewBonuses]] = await Promise.all([
+    Commission.aggregate([
+      { $match: { user: req.user._id } },
+      { $group: { _id: '$level', amount: { $sum: '$amount' }, count: { $sum: 1 } } },
+    ]),
+    Transaction.aggregate([
+      { $match: { user: req.user._id, type: 'review_bonus', status: 'completed' } },
+      { $group: { _id: null, amount: { $sum: '$amount' }, count: { $sum: 1 } } },
+    ]),
   ]);
   const byLevel = Object.fromEntries(rows.map((r) => [r._id, r]));
   const level = (n) => ({ amount: byLevel[n]?.amount || 0, count: byLevel[n]?.count || 0 });
@@ -57,6 +67,7 @@ exports.earnings = asyncHandler(async (req, res) => {
     level1: level(1),
     level2: level(2),
     level3: level(3),
+    hotelReviews: { amount: reviewBonuses?.amount || 0, count: reviewBonuses?.count || 0 },
     totalEarnings: req.user.commissionWallet.totalEarned,
   });
 });

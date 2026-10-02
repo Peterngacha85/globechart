@@ -66,11 +66,24 @@ Password-reset emails are stubbed: the link is printed in the backend console un
 - Product commission percentages (level 1/2/3, max 50% combined) are set per product. A referrer only earns while their account is active.
 - Balance changes are atomic (conditional updates inside database transactions), so a wallet can't be overspent by concurrent requests.
 
-## Deliberately not built
+## Hotel reviews
 
-The reference screenshots also showed pay-to-unlock earning tasks (hotel reviews, Y99, AI training, chat-for-pay), an activation-fee referral scheme, real-money roulette, and a "just withdrawn" popup. Those are excluded on purpose: payouts funded by other users' fees are a pyramid/Ponzi structure and users lose money.
+The admin signs an agreement with a hotel (outside the system), then adds it in **Admin → Hotel Reviews** with its GPS point, a fee, a bonus and a number of **slots**. Bonuses are funded by the admin, who is paid by the hotels; slots × bonus is the most she has committed to pay for that hotel.
+
+1. A member pays the fee (default Ksh 100) from the main wallet. This reserves one slot for 48 hours.
+2. At the hotel, the member submits a 1–5 star rating, a written review and a photo. The browser's GPS position must be within 200 m of the hotel.
+3. The admin checks the photo and location. **Approve** pays the bonus (default Ksh 200) into the withdrawable commission wallet. **Reject** needs a reason and refunds the fee, unless the admin marks the review as fake; then the fee is kept and the member can't review that hotel again.
+4. A reservation that isn't submitted within 48 hours expires; the fee is refunded and the slot freed (checked every 10 minutes and on each hotel request).
+
+Safeguards: a hotel never accepts more reservations than its slots (concurrent requests included), one review per member per hotel, fees and bonuses are separate ledger types (`review_fee`, `review_bonus`), and the admin summary shows bonuses paid, fees kept after refunds, and the most still owed. Approved reviews are public on the hotel page, labelled **Sponsored**.
+
+GPS can be faked on a rooted phone or with a mock-location app, so the photo is the admin's main proof. Browsers only share location over **HTTPS** (or `localhost`), so the deployed frontend must use HTTPS.
+
+## Not built (yet)
+
+The reference screenshots also showed other earning tasks (Y99, AI training, chat-for-pay), an activation-fee referral scheme, real-money roulette, and a "just withdrawn" popup. These are not built. Any payout must be funded by a real outside source (as hotel bonuses are funded by the admin and hotels), never by other members' fees, or it becomes a pyramid/Ponzi structure and users lose money.
 
 ## API
 
 All routes are under `/api`. See `03-API-ENDPOINTS.md` for the original design; the implemented differences are:
-`/users/team`, `/finance/limits`, `/finance/deposits/:id`, `/finance/transactions`, `/finance/mpesa/callback`, `/dashboard/*`, and the admin routes for users, withdrawals, products, settings and analytics.
+`/users/team`, `/finance/limits`, `/finance/deposits/:id`, `/finance/transactions`, `/finance/mpesa/callback`, `/dashboard/*`, `/hotels/*`, and the admin routes for users, withdrawals, products, hotels, hotel reviews, settings and analytics.

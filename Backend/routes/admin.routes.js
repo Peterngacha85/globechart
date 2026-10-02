@@ -1,5 +1,6 @@
 const express = require('express');
 const admin = require('../controllers/adminController');
+const hotels = require('../controllers/hotelController');
 const { protect, adminOnly } = require('../middleware/auth.middleware');
 
 const router = express.Router();
@@ -27,5 +28,16 @@ router.get('/products', admin.listProducts);
 router.post('/products', admin.createProduct);
 router.put('/products/:id', admin.updateProduct);
 router.delete('/products/:id', admin.archiveProduct);
+
+router.get('/hotels', hotels.adminListHotels);
+router.get('/hotels/summary', hotels.adminSummary);
+router.post('/hotels', hotels.adminCreateHotel);
+router.put('/hotels/:id', hotels.adminUpdateHotel);
+router.delete('/hotels/:id', hotels.adminArchiveHotel);
+
+router.get('/hotel-reviews', hotels.adminListReviews);
+router.get('/hotel-reviews/:id', hotels.adminGetReview);
+router.put('/hotel-reviews/:id/approve', hotels.adminApproveReview);
+router.put('/hotel-reviews/:id/reject', hotels.adminRejectReview);
 
 module.exports = router;
