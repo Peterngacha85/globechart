@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Bell, ChevronRight, CreditCard, History, Home, Hotel, Layers, LayoutDashboard, LogOut, Menu, Package, PackageOpen,
+  Bell, ChevronRight, CreditCard, History, Home, Hotel, Layers, LayoutDashboard, LogOut, Menu, MessagesSquare, Package, PackageOpen,
   Send, Settings, ShoppingBag, Store, UserRound, Users, Wallet, X,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -19,7 +19,10 @@ const USER_NAV = [
     { to: '/dashboard/store', label: 'Products', icon: Store },
     { to: '/dashboard/library', label: 'My Library', icon: PackageOpen },
   ] },
-  { group: 'Earn', items: [{ to: '/dashboard/hotels', label: 'Hotel Reviews', icon: Hotel }] },
+  { group: 'Earn', items: [
+    { to: '/dashboard/hotels', label: 'Hotel Reviews', icon: Hotel },
+    { to: '/dashboard/jobs', label: 'Chat Jobs', icon: MessagesSquare },
+  ] },
   { group: 'Finance', items: [
     { to: '/dashboard/withdraw', label: 'Withdraw', icon: Send },
     { to: '/dashboard/recharge', label: 'Recharge', icon: CreditCard },
@@ -36,9 +39,12 @@ const ADMIN_NAV = [
     { to: '/admin/withdrawals', label: 'Withdrawals', icon: Wallet },
     { to: '/admin/products', label: 'Products', icon: Package },
     { to: '/admin/hotels', label: 'Hotel Reviews', icon: Hotel },
+    { to: '/admin/chat-jobs', label: 'Chat Jobs', icon: MessagesSquare },
     { to: '/admin/settings', label: 'Settings', icon: Settings },
   ] },
 ];
+
+const BUSINESS_NAV = [{ group: 'Business', items: [{ to: '/business', label: 'Applicants', icon: MessagesSquare, end: true }] }];
 
 function Clock() {
   const [now, setNow] = useState(new Date());
@@ -105,13 +111,13 @@ function Sidebar({ nav, onNavigate, admin }) {
   );
 }
 
-export default function Layout({ admin = false }) {
+export default function Layout({ admin = false, business = false }) {
   const { user } = useAuth();
   const live = useLive();
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const nav = admin ? ADMIN_NAV : USER_NAV;
+  const nav = admin ? ADMIN_NAV : business ? BUSINESS_NAV : USER_NAV;
 
   useEffect(() => setOpen(false), [pathname]);
 
@@ -125,6 +131,7 @@ export default function Layout({ admin = false }) {
           <Logo />
           <span className="text-lg font-extrabold tracking-tight">{APP_NAME.toUpperCase()}</span>
           {admin && <span className="chip bg-brand-100 text-brand-700">Admin</span>}
+          {business && <span className="chip bg-emerald-100 text-emerald-700">Business</span>}
         </div>
         <div className="flex items-center gap-2 sm:gap-3">
           <Clock />
@@ -133,23 +140,30 @@ export default function Layout({ admin = false }) {
               {admin ? 'Member view' : 'Admin panel'}
             </button>
           )}
-          <button onClick={() => navigate('/dashboard/store')} aria-label="Store" className="hidden h-10 w-10 place-items-center rounded-xl bg-sky-100 text-sky-600 sm:grid">
-            <ShoppingBag className="h-5 w-5" />
-          </button>
-          <button onClick={() => navigate('/dashboard/notifications')} aria-label={`Notifications (${live?.unread || 0} unread)`} className="relative grid h-10 w-10 place-items-center rounded-xl bg-rose-100 text-rose-500">
-            <Bell className="h-5 w-5" />
-            {live?.unread > 0 && (
-              <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-rose-600 px-1 text-[10px] font-bold text-white">
-                {live.unread > 99 ? '99+' : live.unread}
-              </span>
-            )}
-          </button>
-          <button onClick={() => navigate('/dashboard/profile')} className="flex items-center gap-2 rounded-full bg-brand-50 py-1 pl-1 pr-3 ring-1 ring-brand-200">
-            <span className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-500 text-sm font-bold uppercase text-white">
-              {user?.username?.[0]}
-            </span>
-            <span className="max-w-24 truncate text-sm font-semibold">{user?.username}</span>
-          </button>
+          {business ? (
+            // Business accounts only use the applicants inbox, so the member shortcuts are hidden
+            <span className="rounded-full bg-brand-50 px-3 py-2 text-sm font-semibold ring-1 ring-brand-200">{user?.username}</span>
+          ) : (
+            <>
+              <button onClick={() => navigate('/dashboard/store')} aria-label="Store" className="hidden h-10 w-10 place-items-center rounded-xl bg-sky-100 text-sky-600 sm:grid">
+                <ShoppingBag className="h-5 w-5" />
+              </button>
+              <button onClick={() => navigate('/dashboard/notifications')} aria-label={`Notifications (${live?.unread || 0} unread)`} className="relative grid h-10 w-10 place-items-center rounded-xl bg-rose-100 text-rose-500">
+                <Bell className="h-5 w-5" />
+                {live?.unread > 0 && (
+                  <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-rose-600 px-1 text-[10px] font-bold text-white">
+                    {live.unread > 99 ? '99+' : live.unread}
+                  </span>
+                )}
+              </button>
+              <button onClick={() => navigate('/dashboard/profile')} className="flex items-center gap-2 rounded-full bg-brand-50 py-1 pl-1 pr-3 ring-1 ring-brand-200">
+                <span className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-500 text-sm font-bold uppercase text-white">
+                  {user?.username?.[0]}
+                </span>
+                <span className="max-w-24 truncate text-sm font-semibold">{user?.username}</span>
+              </button>
+            </>
+          )}
         </div>
       </header>
 

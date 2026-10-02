@@ -29,10 +29,15 @@ const adminOnly = (req, res, next) => {
   next();
 };
 
-const optional = asyncHandler(async (req, res, next) => {
+const businessOnly = (req, res, next) => {
+  if (req.user?.role !== 'business') return next(new ApiError(403, 'Business account required'));
+  next();
+};
+
+const optional =asyncHandler(async (req, res, next) => {
   const user = await resolveUser(req.headers.authorization);
   if (user && user.status !== 'suspended' && user.status !== 'banned') req.user = user;
   next();
 });
 
-module.exports = { protect, adminOnly, optional, resolveUser };
+module.exports = { protect, adminOnly, businessOnly, optional, resolveUser };

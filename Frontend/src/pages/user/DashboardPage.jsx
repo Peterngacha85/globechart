@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, Coffee, Hotel, Link2, Send, ShoppingBag, TrendingUp, Users, Wallet } from 'lucide-react';
+import { ArrowUpRight, Coffee, Hotel, Link2, Send, ShoppingBag, TrendingUp, Undo2, Users, Wallet } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import useFetch from '../../hooks/useFetch';
 import { useSocketEvent } from '../../context/LiveContext';
@@ -96,6 +96,16 @@ export default function DashboardPage() {
             <div className="flex justify-between"><dt className="text-slate-500">Withdrawn today</dt><dd className="font-bold">{formatKES(s?.withdrawnToday)}</dd></div>
             <div className="flex justify-between"><dt className="text-slate-500">Transactions</dt><dd className="font-bold">{s?.transactions}</dd></div>
           </dl>
+          <Link to="/dashboard/history?tab=refunds" className="mt-4 block rounded-2xl bg-emerald-50/70 p-3 text-sm ring-1 ring-emerald-100 hover:ring-emerald-300">
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2 font-bold text-emerald-800"><Undo2 className="h-4 w-4" /> My refunds</span>
+              <span className="font-extrabold text-emerald-700">{formatKES(s?.refunds?.total)}</span>
+            </div>
+            <p className="mt-1 text-xs text-slate-600">
+              {s?.refunds?.count || 0} refund{s?.refunds?.count === 1 ? '' : 's'} received
+              {s?.feesAwaitingOutcome > 0 && ` · ${formatKESShort(s.feesAwaitingOutcome)} in fees awaiting a result (refunded if not hired or approved)`}
+            </p>
+          </Link>
           <Link to="/dashboard/recharge" className="btn-primary mt-5 w-full">Add money to main wallet</Link>
         </section>
       </div>

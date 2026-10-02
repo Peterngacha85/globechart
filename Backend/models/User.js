@@ -47,7 +47,8 @@ const userSchema = new mongoose.Schema(
 
     mpesaPhone: String,
 
-    role: { type: String, enum: ['user', 'super_admin'], default: 'user' },
+    // business: a partner company's login, created by the admin, that chats with job applicants
+    role: { type: String, enum: ['user', 'business', 'super_admin'], default: 'user' },
     // true only for the account that is kept in sync with ADMIN_* in .env
     isSystemAdmin: { type: Boolean, default: false, index: true },
 

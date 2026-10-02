@@ -109,6 +109,7 @@ const CHIP_TONES = {
 const STATUS_TONE = {
   active: 'green', completed: 'green', approved: 'green',
   pending: 'amber', inactive: 'gray', reserved: 'purple', submitted: 'amber', paused: 'amber', expired: 'gray', archived: 'gray',
+  hired: 'green', not_selected: 'gray', no_response: 'gray',
   suspended: 'red', banned: 'red', failed: 'red', rejected: 'red', cancelled: 'gray',
 };
 

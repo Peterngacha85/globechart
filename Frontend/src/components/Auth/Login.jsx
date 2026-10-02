@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Info, LogIn, User } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { homePath, useAuth } from '../../context/AuthContext';
 import { errorMessage } from '../../services/api';
 import AuthShell from './AuthShell';
 import PasswordField from './PasswordField';
@@ -23,8 +23,11 @@ export default function Login({ admin = false }) {
     setLoading(true);
     try {
       const profile = await login(form.username.trim(), form.password, form.rememberMe, { adminOnly: admin });
-      const fallback = profile.role === 'super_admin' ? '/admin' : '/dashboard';
-      navigate(location.state?.from || fallback, { replace: true });
+      const home = homePath(profile.role);
+      // Return to the page they came from only if their account may use it (the admin may use every area)
+      const from = location.state?.from;
+      const allowed = from && (profile.role === 'super_admin' || from.startsWith(home));
+      navigate(allowed ? from : home, { replace: true });
     } catch (err) {
       setError(err.userMessage ? err.message : errorMessage(err, 'Login failed. Please try again.'));
     } finally {

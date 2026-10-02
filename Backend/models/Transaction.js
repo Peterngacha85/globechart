@@ -5,7 +5,7 @@ const transactionSchema = new mongoose.Schema(
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     type: {
       type: String,
-      enum: ['deposit', 'withdrawal', 'purchase', 'commission', 'refund', 'review_fee', 'review_bonus'],
+      enum: ['deposit', 'withdrawal', 'purchase', 'commission', 'refund', 'review_fee', 'review_bonus', 'unlock_fee'],
       required: true,
     },
     // Which wallet the money moved in: deposits/purchases hit "main", commissions/withdrawals hit "commission"
@@ -27,6 +27,7 @@ const transactionSchema = new mongoose.Schema(
     relatedProduct: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
     relatedUser: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     relatedReview: { type: mongoose.Schema.Types.ObjectId, ref: 'HotelReview' },
+    relatedApplication: { type: mongoose.Schema.Types.ObjectId, ref: 'JobApplication' },
     completedAt: Date,
   },
   { timestamps: true }

@@ -7,7 +7,7 @@ import { formatDateTime, formatKESShort } from '../../utils/format';
 
 const TYPE_LABEL = {
   deposit: 'Deposit', withdrawal: 'Withdrawal', purchase: 'Purchase', commission: 'Commission', refund: 'Refund',
-  review_fee: 'Review fee', review_bonus: 'Review bonus',
+  review_fee: 'Review fee', review_bonus: 'Review bonus', unlock_fee: 'Unlock fee',
 };
 const CREDIT_TYPES = ['deposit', 'commission', 'refund', 'review_bonus'];
 
@@ -58,12 +58,17 @@ function Withdrawals() {
   );
 }
 
-function Transactions() {
+function Transactions({ type }) {
   const [page, setPage] = useState(1);
-  const { data, loading, error } = useFetch('/finance/transactions', { page, limit: 15 });
+  const { data, loading, error } = useFetch('/finance/transactions', { page, limit: 15, type });
   if (loading) return <PageLoader />;
   return (
     <section className="card overflow-hidden">
+      {type === 'refund' && (
+        <p className="border-b border-brand-100 bg-emerald-50/60 px-5 py-3 text-sm text-emerald-800">
+          Fees returned to your main wallet: chat jobs with no reply or no hire, expired hotel reservations, and rejected reviews.
+        </p>
+      )}
       <ErrorNote message={error} />
       {data?.transactions.length ? (
         <ul className="divide-y divide-brand-100/70">
@@ -80,7 +85,9 @@ function Transactions() {
             </li>
           ))}
         </ul>
-      ) : <EmptyState icon={ReceiptText} title="No transactions yet" text="Deposits, purchases and commissions will show up here." />}
+      ) : type === 'refund'
+        ? <EmptyState icon={ReceiptText} title="No refunds yet" text="Any fee returned to you will show up here." />
+        : <EmptyState icon={ReceiptText} title="No transactions yet" text="Deposits, purchases and commissions will show up here." />}
       <Pagination page={page} totalPages={data?.totalPages} onChange={setPage} />
     </section>
   );
@@ -88,16 +95,16 @@ function Transactions() {
 
 export default function HistoryPage() {
   const [params, setParams] = useSearchParams();
-  const tab = params.get('tab') === 'withdrawals' ? 'withdrawals' : 'transactions';
+  const tab = ['withdrawals', 'refunds'].includes(params.get('tab')) ? params.get('tab') : 'transactions';
   return (
     <div className="space-y-5">
-      <div className="flex gap-2">
-        {[['transactions', 'Transactions'], ['withdrawals', 'Withdrawals']].map(([key, label]) => (
+      <div className="flex flex-wrap gap-2">
+        {[['transactions', 'Transactions'], ['refunds', 'Refunds'], ['withdrawals', 'Withdrawals']].map(([key, label]) => (
           <button key={key} onClick={() => setParams({ tab: key })}
             className={`rounded-full px-5 py-2 text-sm font-bold ring-1 ${tab === key ? 'bg-brand-nav text-white ring-transparent shadow-glow' : 'bg-white text-slate-700 ring-brand-100'}`}>{label}</button>
         ))}
       </div>
-      {tab === 'withdrawals' ? <Withdrawals /> : <Transactions />}
+      {tab === 'withdrawals' ? <Withdrawals /> : <Transactions key={tab} type={tab === 'refunds' ? 'refund' : undefined} />}
     </div>
   );
 }

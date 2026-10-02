@@ -79,11 +79,23 @@ Safeguards: a hotel never accepts more reservations than its slots (concurrent r
 
 GPS can be faked on a rooted phone or with a mock-location app, so the photo is the admin's main proof. Browsers only share location over **HTTPS** (or `localhost`), so the deployed frontend must use HTTPS.
 
+## Chat jobs
+
+The admin signs up businesses that need chat customer support agents (outside the system), then adds each one in **Admin → Chat Jobs** with an unlock fee, a number of openings, and a **business login** (username, phone, password). The business signs in on the normal `/login` page and lands on its own **applicants inbox** at `/business`.
+
+1. A member pays the unlock fee (default Ksh 100) from the main wallet. This opens a text chat with the business, which interviews them.
+2. The business clicks **Hire** (the fee is kept; the admin pays the agent's wages outside the system) or **Not selected** (the fee is refunded).
+3. If the business doesn't reply within **48 hours**, or doesn't decide within **7 days**, the application closes and the fee is refunded automatically. A reply sent after the 48 hours does not cancel a refund that is already due.
+
+Rules: one open application per member; one application per member per business (after a no-reply or no-decision refund they may try that business again); at most 3 applicants in progress per unfilled opening, and no hiring beyond the openings. The admin can read every chat, write in it, and decide on a business's behalf.
+
+Every refund (chat jobs and hotel reviews) is a `refund` transaction with the reason in its description. Members see them under **History → Refunds**, on the dashboard's **My refunds** card (with fees still awaiting a result), and in **Chat Jobs → My applications**.
+
 ## Not built (yet)
 
-The reference screenshots also showed other earning tasks (Y99, AI training, chat-for-pay), an activation-fee referral scheme, real-money roulette, and a "just withdrawn" popup. These are not built. Any payout must be funded by a real outside source (as hotel bonuses are funded by the admin and hotels), never by other members' fees, or it becomes a pyramid/Ponzi structure and users lose money.
+The reference screenshots also showed other earning tasks (Y99, AI training), an activation-fee referral scheme, real-money roulette, and a "just withdrawn" popup. These are not built. Any payout must be funded by a real outside source (as hotel bonuses are funded by the admin and hotels), never by other members' fees, or it becomes a pyramid/Ponzi structure and users lose money.
 
 ## API
 
 All routes are under `/api`. See `03-API-ENDPOINTS.md` for the original design; the implemented differences are:
-`/users/team`, `/finance/limits`, `/finance/deposits/:id`, `/finance/transactions`, `/finance/mpesa/callback`, `/dashboard/*`, `/hotels/*`, and the admin routes for users, withdrawals, products, hotels, hotel reviews, settings and analytics.
+`/users/team`, `/finance/limits`, `/finance/deposits/:id`, `/finance/transactions`, `/finance/mpesa/callback`, `/dashboard/*`, `/hotels/*`, `/chat-jobs/*`, and the admin routes for users, withdrawals, products, hotels, hotel reviews, chat businesses, job applications, settings and analytics.

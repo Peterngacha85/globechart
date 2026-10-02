@@ -11,6 +11,9 @@ import StorePage from './pages/user/StorePage';
 import LibraryPage from './pages/user/LibraryPage';
 import HotelsPage from './pages/user/HotelsPage';
 import HotelPage from './pages/user/HotelPage';
+import JobsPage, { MemberChatPage } from './pages/user/JobsPage';
+import BusinessInbox, { BusinessChatPage } from './pages/business/BusinessInbox';
+import AdminChatJobs, { AdminChatPage } from './pages/admin/AdminChatJobs';
 import RechargePage from './pages/user/RechargePage';
 import WithdrawPage from './pages/user/WithdrawPage';
 import HistoryPage from './pages/user/HistoryPage';
@@ -45,6 +48,8 @@ export default function App() {
           <Route path="library" element={<LibraryPage />} />
           <Route path="hotels" element={<HotelsPage />} />
           <Route path="hotels/:id" element={<HotelPage />} />
+          <Route path="jobs" element={<JobsPage />} />
+          <Route path="jobs/chat/:id" element={<MemberChatPage />} />
           <Route path="recharge" element={<RechargePage />} />
           <Route path="withdraw" element={<WithdrawPage />} />
           <Route path="history" element={<HistoryPage />} />
@@ -61,7 +66,16 @@ export default function App() {
           <Route path="deposits" element={<AdminDeposits />} />
           <Route path="products" element={<AdminProducts />} />
           <Route path="hotels" element={<AdminHotels />} />
+          <Route path="chat-jobs" element={<AdminChatJobs />} />
+          <Route path="chat-jobs/chat/:id" element={<AdminChatPage />} />
           <Route path="settings" element={<AdminSettings />} />
+        </Route>
+      </Route>
+
+      <Route element={<ProtectedRoute area="business" />}>
+        <Route path="/business" element={<Layout business />}>
+          <Route index element={<BusinessInbox />} />
+          <Route path="chats/:id" element={<BusinessChatPage />} />
         </Route>
       </Route>
 

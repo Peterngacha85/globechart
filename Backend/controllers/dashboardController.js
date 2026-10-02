@@ -2,6 +2,8 @@ const Commission = require('../models/Commission');
 const Transaction = require('../models/Transaction');
 const Purchase = require('../models/Purchase');
 const User = require('../models/User');
+const JobApplication = require('../models/JobApplication');
+const HotelReview = require('../models/HotelReview');
 const { asyncHandler, sendSuccess } = require('../utils/ApiError');
 const { startOfDayNairobi } = require('../utils/money');
 const { getSettings } = require('../services/settings');
@@ -29,9 +31,21 @@ exports.summary = asyncHandler(async (req, res) => {
     activeDirectReferrals(u._id),
     getSettings(),
   ]);
-  const withdrawnToday = await Transaction.aggregate([
-    { $match: { user: u._id, type: 'withdrawal', status: { $in: ['pending', 'completed'] }, createdAt: { $gte: startOfDayNairobi() } } },
-    { $group: { _id: null, total: { $sum: '$amount' } } },
+  const [withdrawnToday, [refunds], [heldJob], [heldReview]] = await Promise.all([
+    Transaction.aggregate([
+      { $match: { user: u._id, type: 'withdrawal', status: { $in: ['pending', 'completed'] }, createdAt: { $gte: startOfDayNairobi() } } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]),
+    Transaction.aggregate([
+      { $match: { user: u._id, type: 'refund', status: 'completed' } },
+      { $group: { _id: null, total: { $sum: '$amount' }, count: { $sum: 1 } } },
+    ]),
+    // Fees still waiting on an outcome: refunded automatically unless the member is hired / approved
+    JobApplication.aggregate([{ $match: { user: u._id, status: 'pending' } }, { $group: { _id: null, total: { $sum: '$fee' } } }]),
+    HotelReview.aggregate([
+      { $match: { user: u._id, status: { $in: ['reserved', 'submitted'] } } },
+      { $group: { _id: null, total: { $sum: '$fee' } } },
+    ]),
   ]);
 
   sendSuccess(res, {
@@ -46,6 +60,8 @@ exports.summary = asyncHandler(async (req, res) => {
     transactions: txCount,
     accountStatus: u.status,
     minWithdrawal: settings.min_withdrawal,
+    refunds: { total: refunds?.total || 0, count: refunds?.count || 0 },
+    feesAwaitingOutcome: (heldJob?.total || 0) + (heldReview?.total || 0),
   });
 });
 

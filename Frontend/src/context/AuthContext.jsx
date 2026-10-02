@@ -56,11 +56,17 @@ export function AuthProvider({ children }) {
   }, []);
 
   const value = useMemo(
-    () => ({ user, loading, isAuthenticated: !!user, isAdmin: user?.role === 'super_admin', login, register, logout, refreshUser }),
+    () => ({
+      user, loading, isAuthenticated: !!user, isAdmin: user?.role === 'super_admin', isBusiness: user?.role === 'business',
+      login, register, logout, refreshUser,
+    }),
     [user, loading, login, register, logout, refreshUser]
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
+
+// Where each kind of account lands after signing in
+export const homePath = (role) => (role === 'super_admin' ? '/admin' : role === 'business' ? '/business' : '/dashboard');
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
