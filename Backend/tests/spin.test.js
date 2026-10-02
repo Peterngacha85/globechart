@@ -10,7 +10,7 @@ const SpinDay = require('../models/SpinDay');
 const Transaction = require('../models/Transaction');
 const HotelReview = require('../models/HotelReview');
 const JobApplication = require('../models/JobApplication');
-const { prizeForRoll, oddsTable, AVERAGE_PRIZE, dayKey } = require('../services/spinService');
+const { WHEEL, prizeForRoll, oddsTable, AVERAGE_PRIZE, dayKey } = require('../services/spinService');
 
 before(db.connect);
 beforeEach(db.clear);
@@ -21,13 +21,20 @@ const fundBonus = (user, amount) => User.updateOne({ _id: user.id }, { $inc: { '
 const bonusOf = async (user) => (await User.findById(user.id)).bonusWallet.balance;
 
 describe('odds', () => {
-  test('rolls map to the published table and the chances add up to 100%', () => {
-    expect([0, 6999, 7000, 8999, 9000, 9699, 9700, 9899, 9900, 9999].map(prizeForRoll)).toEqual([30, 30, 50, 50, 100, 100, 200, 200, 300, 300]);
+  test('rolls map to the 40 equal slices and the chances add up to 100%', () => {
+    // slice = roll ÷ 250: 0-249 is slice 1 (30), 250-499 slice 2 (35), 1750-1999 slice 8 (300), 9750-9999 slice 40 (30)
+    expect([0, 249, 250, 1750, 1999, 9750, 9999].map(prizeForRoll)).toEqual([30, 30, 35, 300, 300, 30, 30]);
     expect(() => prizeForRoll(10000)).toThrow();
+    expect(() => prizeForRoll(-1)).toThrow();
+    expect(WHEEL).toHaveLength(40);
+
     const odds = oddsTable();
+    expect(odds.map((o) => o.amount)).toEqual([30, 35, 45, 50, 55, 60, 70, 80, 90, 100, 150, 210, 300]);
+    expect(odds.reduce((s, o) => s + o.slices, 0)).toBe(40);
     expect(odds.reduce((s, o) => s + o.chance, 0)).toBeCloseTo(1);
-    expect(odds.map((o) => [o.amount, o.chance])).toEqual([[30, 0.7], [50, 0.2], [100, 0.07], [200, 0.02], [300, 0.01]]);
-    expect(AVERAGE_PRIZE).toBeCloseTo(45);
+    expect(odds.find((o) => o.amount === 30)).toMatchObject({ slices: 14, chance: 0.35 });
+    expect(odds.find((o) => o.amount === 300)).toMatchObject({ slices: 1, chance: 0.025 });
+    expect(AVERAGE_PRIZE).toBeCloseTo(58.25);
   });
 
   test('a Nairobi day starts at 21:00 UTC', () => {
@@ -48,6 +55,7 @@ describe('spinning', () => {
       expect(res.status).toBe(201);
       expect(res.body.data).toMatchObject({ number: i, spinsLeft: 3 - i });
       expect(prizeForRoll(res.body.data.roll)).toBe(res.body.data.prize); // every result is checkable
+      expect(WHEEL[res.body.data.slice - 1]).toBe(res.body.data.prize);
       won.push(res.body.data.prize);
     }
     expect((await spin(alice)).status).toBe(429);
@@ -172,7 +180,7 @@ describe('admin', () => {
     await request(app).post(`/api/hotels/${hotel.body.data.hotelId}/start`).set(alice.auth).expect(201);
 
     const res = await request(app).get('/api/admin/spin/summary').set(admin.auth).expect(200);
-    expect(res.body.data).toMatchObject({ budget: 2000, today: { paid: won, spins: 1 }, totalWon: won, spentOnFees: 100, creditOutstanding: 0, averagePrize: 45 });
+    expect(res.body.data).toMatchObject({ budget: 2000, today: { paid: won, spins: 1 }, totalWon: won, spentOnFees: 100, creditOutstanding: 0, averagePrize: 58.25 });
     expect(await SpinDay.countDocuments({})).toBe(1);
     expect((await request(app).get('/api/admin/spin/summary').set(alice.auth)).status).toBe(403);
   });

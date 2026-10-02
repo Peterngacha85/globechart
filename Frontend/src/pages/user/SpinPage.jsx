@@ -7,7 +7,12 @@ import api, { errorMessage } from '../../services/api';
 import { EmptyState, ErrorNote, Modal, PageHeader, PageLoader, Spinner } from '../../components/Shared/ui';
 import { formatDateTime, formatKESShort } from '../../utils/format';
 
-const COLORS = ['#7c3aed', '#0ea5e9', '#10b981', '#f59e0b', '#e11d48'];
+// One colour per prize, cool for small prizes through hot for the big ones
+const COLORS = {
+  30: '#6d28d9', 35: '#7c3aed', 45: '#4f46e5', 50: '#2563eb', 55: '#0284c7', 60: '#0891b2', 70: '#0d9488',
+  80: '#059669', 90: '#65a30d', 100: '#ca8a04', 150: '#ea580c', 210: '#dc2626', 300: '#be123c',
+};
+const colorOf = (amount) => COLORS[amount] || '#64748b';
 const ROLL_RANGE = 10000;
 const SPIN_MS = 4500;
 
@@ -23,27 +28,23 @@ function slicePath(from, to, r = 96) {
   return `M100 100 L${x1} ${y1} A${r} ${r} 0 ${to - from > 180 ? 1 : 0} 1 ${x2} ${y2} Z`;
 }
 
-/** Slices are sized by their real chance, so the picture is the odds. */
-function Wheel({ odds, rotation, spinning }) {
+/** 40 equal slices drawn from the server's own list, so a prize's chance is how many slices it has. */
+function Wheel({ wheel, rotation, spinning }) {
+  const step = 360 / wheel.length;
   return (
     <div className="relative mx-auto aspect-square w-full max-w-sm">
       <svg viewBox="0 0 200 200" className="h-full w-full drop-shadow-xl" role="img" aria-label="Prize wheel">
         <g style={{ transform: `rotate(${rotation}deg)`, transformOrigin: '100px 100px', transition: spinning ? `transform ${SPIN_MS}ms cubic-bezier(0.15, 0.7, 0.1, 1)` : 'none' }}>
-          {odds.map((o, i) => {
-            const from = (o.rolls[0] / ROLL_RANGE) * 360;
-            const to = ((o.rolls[1] + 1) / ROLL_RANGE) * 360;
-            const mid = (from + to) / 2;
-            const wide = to - from >= 20;
-            const [lx, ly] = polar(mid, wide ? 60 : 78);
+          {wheel.map((amount, i) => {
+            const mid = (i + 0.5) * step;
+            const [lx, ly] = polar(mid, 72);
             return (
-              <g key={o.amount}>
-                <path d={slicePath(from, to)} fill={COLORS[i % COLORS.length]} stroke="#fff" strokeWidth="0.8" />
-                {to - from >= 7 && (
-                  <text x={lx} y={ly} fill="#fff" fontSize={wide ? 13 : 6.5} fontWeight="800" textAnchor="middle" dominantBaseline="middle"
-                    transform={wide ? undefined : `rotate(${mid - 90} ${lx} ${ly})`}>
-                    {o.amount}
-                  </text>
-                )}
+              <g key={i}>
+                <path d={slicePath(i * step, (i + 1) * step)} fill={colorOf(amount)} stroke="#fff" strokeWidth="0.6" />
+                {/* Reads outward from the centre */}
+                <text x={lx} y={ly} fill="#fff" fontSize="6.5" fontWeight="800" textAnchor="middle" dominantBaseline="middle" transform={`rotate(${mid - 90} ${lx} ${ly})`}>
+                  {amount}
+                </text>
               </g>
             );
           })}
@@ -105,7 +106,7 @@ export default function SpinPage() {
 
       <div className="grid gap-5 lg:grid-cols-5">
         <section className="card space-y-5 p-6 lg:col-span-3">
-          <Wheel odds={data.odds} rotation={rotation} spinning={spinning} />
+          <Wheel wheel={data.wheel} rotation={rotation} spinning={spinning} />
           <div className="flex items-center justify-center gap-2" aria-label={`${data.spinsLeft} of ${data.spinsPerDay} spins left today`}>
             {Array.from({ length: data.spinsPerDay }, (_, i) => (
               <span key={i} className={`h-3 w-3 rounded-full ${i < data.spinsLeft ? 'bg-brand-600' : 'bg-slate-200'}`} />
@@ -132,20 +133,20 @@ export default function SpinPage() {
           <section className="card p-5">
             <h2 className="flex items-center gap-2 font-extrabold"><ShieldCheck className="h-5 w-5 text-emerald-600" /> Fair odds</h2>
             <table className="mt-3 w-full text-sm">
-              <thead className="text-left text-[11px] uppercase tracking-wider text-slate-500"><tr><th className="py-1">Prize</th><th>Chance</th><th className="text-right">Roll</th></tr></thead>
+              <thead className="text-left text-[11px] uppercase tracking-wider text-slate-500"><tr><th className="py-1">Prize</th><th>Slices</th><th className="text-right">Chance</th></tr></thead>
               <tbody>
-                {data.odds.map((o, i) => (
+                {data.odds.map((o) => (
                   <tr key={o.amount} className="border-t border-brand-100/70">
-                    <td className="py-2 font-bold"><span className="mr-2 inline-block h-3 w-3 rounded-sm align-middle" style={{ background: COLORS[i % COLORS.length] }} />{formatKESShort(o.amount)}</td>
-                    <td>{Math.round(o.chance * 100)}%</td>
-                    <td className="text-right font-mono text-xs text-slate-500">{o.rolls[0]}–{o.rolls[1]}</td>
+                    <td className="py-1.5 font-bold"><span className="mr-2 inline-block h-3 w-3 rounded-sm align-middle" style={{ background: colorOf(o.amount) }} />{formatKESShort(o.amount)}</td>
+                    <td>{o.slices} of {data.wheel.length}</td>
+                    <td className="text-right">{(o.chance * 100).toFixed(1).replace(/\.0$/, '')}%</td>
                   </tr>
                 ))}
               </tbody>
             </table>
             <p className="mt-3 text-xs text-slate-500">
-              The server draws a random number from 0 to 9,999 and the prize is the row it falls in. Average prize: {formatKESShort(data.averagePrize)}.
-              Every spin's number is in your history below, so you can check any result.
+              The wheel has {data.wheel.length} equal slices. The server draws a random number from 0 to 9,999; every {data.rollsPerSlice} numbers is one slice,
+              counted clockwise from the top. Average prize: {formatKESShort(data.averagePrize)}. Each spin's number and slice are in your history below.
             </p>
           </section>
         </div>
@@ -157,7 +158,7 @@ export default function SpinPage() {
           <ul className="divide-y divide-brand-100/70">
             {data.history.map((s) => (
               <li key={s.spinId} className="flex items-center justify-between gap-3 px-5 py-3 text-sm">
-                <span>{formatDateTime(s.createdAt)} · spin {s.number} · <span className="font-mono text-xs text-slate-500">roll {s.roll}</span></span>
+                <span>{formatDateTime(s.createdAt)} · spin {s.number} · <span className="font-mono text-xs text-slate-500">roll {s.roll} → slice {s.slice}</span></span>
                 <span className="font-extrabold text-emerald-600">+{formatKESShort(s.prize)}</span>
               </li>
             ))}

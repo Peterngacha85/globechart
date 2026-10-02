@@ -11,33 +11,35 @@ const NotificationEmitter = require('../utils/notificationEmitter');
 
 const SPINS_PER_DAY = 3;
 
-// Weights are out of 10,000 so every chance is exact. These are the odds shown on the wheel.
-const PRIZES = [
-  { amount: 30, weight: 7000 },
-  { amount: 50, weight: 2000 },
-  { amount: 100, weight: 700 },
-  { amount: 200, weight: 200 },
-  { amount: 300, weight: 100 },
+// The wheel: 40 equal slices, clockwise from 12 o'clock. A prize's chance is simply how many
+// slices carry it (Ksh 30 is on 14 of 40 = 35%; each of 150/210/300 is on 1 = 2.5%).
+// The members' wheel is drawn from this same list.
+const WHEEL = [
+  30, 35, 45, 30, 50, 55, 30, 300, 35, 30,
+  60, 45, 30, 70, 50, 30, 100, 35, 30, 55,
+  80, 30, 45, 150, 30, 35, 60, 30, 50, 90,
+  30, 55, 210, 30, 35, 70, 30, 45, 50, 30,
 ];
-const TOTAL_WEIGHT = PRIZES.reduce((s, p) => s + p.weight, 0);
-const MAX_PRIZE = Math.max(...PRIZES.map((p) => p.amount));
-const AVERAGE_PRIZE = PRIZES.reduce((s, p) => s + (p.amount * p.weight) / TOTAL_WEIGHT, 0);
+const TOTAL_WEIGHT = 10000; // rolls are 0-9999
+const ROLLS_PER_SLICE = TOTAL_WEIGHT / WHEEL.length; // 250
+const MAX_PRIZE = Math.max(...WHEEL);
+const AVERAGE_PRIZE = WHEEL.reduce((s, p) => s + p, 0) / WHEEL.length;
 
-/** Maps a roll in [0, TOTAL_WEIGHT) to its prize: 0-6999 -> 30, 7000-8999 -> 50, and so on. */
-function prizeForRoll(roll) {
-  let edge = 0;
-  for (const p of PRIZES) {
-    edge += p.weight;
-    if (roll < edge) return p.amount;
-  }
-  throw new Error(`Roll ${roll} out of range`);
-}
+const sliceForRoll = (roll) => {
+  if (!Number.isInteger(roll) || roll < 0 || roll >= TOTAL_WEIGHT) throw new Error(`Roll ${roll} out of range`);
+  return Math.floor(roll / ROLLS_PER_SLICE);
+};
+
+/** Maps a roll in [0, 10000) to its prize: the slice it lands on is roll ÷ 250. */
+const prizeForRoll = (roll) => WHEEL[sliceForRoll(roll)];
 
 const oddsTable = () =>
-  PRIZES.map((p, i) => {
-    const from = PRIZES.slice(0, i).reduce((s, x) => s + x.weight, 0);
-    return { amount: p.amount, chance: p.weight / TOTAL_WEIGHT, rolls: [from, from + p.weight - 1] };
-  });
+  [...new Set(WHEEL)]
+    .sort((a, b) => a - b)
+    .map((amount) => {
+      const slices = WHEEL.filter((p) => p === amount).length;
+      return { amount, slices, chance: slices / WHEEL.length };
+    });
 
 const dayKey = (now = new Date()) => new Date(startOfDayNairobi(now).getTime() + 3 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
@@ -122,4 +124,4 @@ async function spin(user, io) {
   return { ...result, spinsLeft: SPINS_PER_DAY - (used + 1) };
 }
 
-module.exports = { SPINS_PER_DAY, PRIZES, MAX_PRIZE, AVERAGE_PRIZE, prizeForRoll, oddsTable, dayKey, status, spin };
+module.exports = { SPINS_PER_DAY, WHEEL, ROLLS_PER_SLICE, MAX_PRIZE, AVERAGE_PRIZE, sliceForRoll, prizeForRoll, oddsTable, dayKey, status, spin };

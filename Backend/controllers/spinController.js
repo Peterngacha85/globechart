@@ -7,12 +7,22 @@ const { round2 } = require('../utils/money');
 const { getSetting } = require('../services/settings');
 const spins = require('../services/spinService');
 
-const spinPayload = (s) => ({ spinId: s._id, day: s.day, number: s.number, roll: s.roll, prize: s.prize, createdAt: s.createdAt });
+const spinPayload = (s) => ({
+  spinId: s._id,
+  day: s.day,
+  number: s.number,
+  roll: s.roll,
+  slice: spins.sliceForRoll(s.roll) + 1, // 1-40, counted clockwise from 12 o'clock
+  prize: s.prize,
+  createdAt: s.createdAt,
+});
 
 exports.status = asyncHandler(async (req, res) => {
   const [state, history] = await Promise.all([spins.status(req.user), Spin.find({ user: req.user._id }).sort('-createdAt').limit(20)]);
   sendSuccess(res, {
     ...state,
+    wheel: spins.WHEEL,
+    rollsPerSlice: spins.ROLLS_PER_SLICE,
     odds: spins.oddsTable(),
     averagePrize: round2(spins.AVERAGE_PRIZE),
     bonusBalance: req.user.bonusWallet?.balance || 0,

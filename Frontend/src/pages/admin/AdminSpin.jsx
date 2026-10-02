@@ -63,7 +63,7 @@ export default function AdminSpin() {
         <h2 className="font-extrabold">Odds (shown to members)</h2>
         <div className="mt-3 flex flex-wrap gap-2">
           {s.odds.map((o) => (
-            <span key={o.amount} className="rounded-xl bg-brand-50 px-3 py-2 text-sm"><b>{formatKESShort(o.amount)}</b> · {Math.round(o.chance * 100)}%</span>
+            <span key={o.amount} className="rounded-xl bg-brand-50 px-3 py-2 text-sm"><b>{formatKESShort(o.amount)}</b> · {o.slices} slice{o.slices === 1 ? '' : 's'} · {(o.chance * 100).toFixed(1).replace(/\.0$/, '')}%</span>
           ))}
         </div>
         <p className="mt-2 text-sm text-slate-500">Average prize {formatKESShort(s.averagePrize)} per spin. Credit spent on fees only costs you when it pays a fee you would otherwise have collected.</p>
