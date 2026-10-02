@@ -17,10 +17,9 @@ import { ToastProvider } from '../context/ToastContext';
 import { LiveProvider } from '../context/LiveContext';
 import { SiteProvider } from '../context/SiteContext';
 
-const respond = (site, profile) =>
+const respond = (site) =>
   api.get.mockImplementation((url) => {
     if (url === '/site') return Promise.resolve({ data: { data: site } });
-    if (url === '/users/profile' && profile) return Promise.resolve({ data: { data: profile } });
     if (url === '/notifications') return Promise.resolve({ data: { data: { unreadCount: 0 } } });
     return Promise.reject(new Error(`unmocked ${url}`));
   });
@@ -46,21 +45,23 @@ beforeEach(() => {
 });
 
 describe('coming soon mode', () => {
-  test('visitors see the launch page with what is coming and a countdown', async () => {
+  test('shows the launch page with what is coming and a countdown', async () => {
     respond({ comingSoon: true, launchDate: new Date(Date.now() + 3 * 86400000).toISOString() });
     renderAt('/register');
     expect(await screen.findByRole('heading', { name: /something big is coming/i })).toBeInTheDocument();
     expect(screen.getByText('Hotel Reviews')).toBeInTheDocument();
     expect(screen.getByText('Y99 Earn Program')).toBeInTheDocument();
     expect(screen.getByText('Days')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /admin sign in/i })).toHaveAttribute('href', '/admin/login');
   });
 
-  test('the admin sign-in page stays reachable', async () => {
+  test('every address shows only the launch page, the admin pages included', async () => {
     respond({ comingSoon: true, launchDate: null });
-    renderAt('/admin/login');
-    expect(await screen.findByText(/administrator sign in/i)).toBeInTheDocument();
-    expect(screen.queryByText(/something big is coming/i)).not.toBeInTheDocument();
+    for (const path of ['/admin/login', '/admin', '/dashboard', '/verify/GC-ABC']) {
+      const { unmount } = renderAt(path);
+      expect(await screen.findByRole('heading', { name: /something big is coming/i })).toBeInTheDocument();
+      expect(screen.queryByText(/sign in/i)).not.toBeInTheDocument();
+      unmount();
+    }
   });
 
   test('when the mode is off, the normal sign-in page shows', async () => {

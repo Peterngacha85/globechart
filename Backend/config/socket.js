@@ -1,7 +1,7 @@
 const { Server } = require('socket.io');
 const { config } = require('./env');
 const { resolveUser } = require('../middleware/auth.middleware');
-const { isClosedFor } = require('../utils/comingSoon');
+const { isClosed } = require('../utils/comingSoon');
 
 // Sockets must present a valid access token; the room is derived from it, never from client input.
 function createSocketServer(httpServer) {
@@ -13,7 +13,7 @@ function createSocketServer(httpServer) {
     try {
       const token = socket.handshake.auth?.token;
       const user = await resolveUser(token ? `Bearer ${token}` : null);
-      if (!user || user.status === 'suspended' || user.status === 'banned' || isClosedFor(user)) return next(new Error('Unauthorized'));
+      if (!user || user.status === 'suspended' || user.status === 'banned' || isClosed()) return next(new Error('Unauthorized'));
       socket.data.userId = String(user._id);
       socket.data.role = user.role;
       next();

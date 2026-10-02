@@ -5,9 +5,7 @@ import {
   Rocket, Send, Settings, ShoppingBag, Sparkles, Store, UserRound, Users, Wallet, X,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { useLive } from '../../context/LiveContext';
-import { useSite } from '../../context/SiteContext';
-import { APP_NAME, Logo } from './ui';
+import { useLive } from '../../context/LiveContext';import { APP_NAME, Logo } from './ui';
 
 const USER_NAV = [
   { group: 'Main', items: [
@@ -119,7 +117,6 @@ function Sidebar({ nav, onNavigate, admin }) {
 
 export default function Layout({ admin = false, business = false }) {
   const { user } = useAuth();
-  const site = useSite();
   const live = useLive();
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
@@ -173,12 +170,6 @@ export default function Layout({ admin = false, business = false }) {
           )}
         </div>
       </header>
-
-      {site.comingSoon && user?.role === 'super_admin' && (
-        <div role="status" className="bg-amber-100 px-4 py-2 text-center text-sm font-semibold text-amber-900">
-          Coming Soon mode is ON. Members see the launch page and cannot sign in. Set COMING_SOON=OFF in the backend .env to open the site.
-        </div>
-      )}
 
       <div className="mx-auto flex max-w-[1600px]">
         <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-72 shrink-0 border-r border-brand-100/70 bg-white/70 lg:block">

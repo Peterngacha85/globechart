@@ -53,9 +53,9 @@ Nothing is seeded and no admin is hardcoded. On every start the backend makes th
 
 Set `COMING_SOON=ON` in the backend environment (on Render: **Environment** tab) to put the site behind a launch page. `OFF` (or leaving it out) opens the site. Render restarts the backend when an environment variable changes; locally, restart it yourself.
 
-- Everyone except the admin sees the Coming Soon page, which lists what's coming. Optional `LAUNCH_DATE` (with timezone, e.g. `2026-11-01T09:00:00+03:00`) adds a live countdown.
-- The server enforces it: sign-up, sign-in and every member API call answer `503` with `comingSoon: true`, and sockets refuse members. Existing members are signed out to the launch page.
-- The admin still signs in at `/admin/login` (linked in the page footer) and sees a banner reminding her the mode is on. Certificate checks (`/verify/<code>`), the health check and M-Pesa callbacks keep working.
+- The whole site is one Coming Soon page listing what's coming, at every address, for every account (the admin included). Optional `LAUNCH_DATE` (with timezone, e.g. `2026-11-01T09:00:00+03:00`) adds a live countdown.
+- The server enforces it: sign-up, sign-in and every signed-in API call answer `503` with `comingSoon: true`, and sockets are refused. Only `/api/site` (which the page reads), `/api/health` and M-Pesa callbacks keep answering.
+- To set things up before launch, switch it `OFF`, do the work, then switch it back `ON`.
 
 ### M-Pesa
 

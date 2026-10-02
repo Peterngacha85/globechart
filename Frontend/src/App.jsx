@@ -1,5 +1,4 @@
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
-import { useAuth } from './context/AuthContext';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import { useSite } from './context/SiteContext';
 import { PageLoader } from './components/Shared/ui';
 import ComingSoonPage from './pages/ComingSoonPage';
@@ -39,15 +38,10 @@ import NotFoundPage from './pages/NotFoundPage';
 
 export default function App() {
   const site = useSite();
-  const { isAdmin, loading } = useAuth();
-  const { pathname } = useLocation();
 
-  if (site.loading || (site.comingSoon && loading)) return <PageLoader />;
-  // Coming Soon (COMING_SOON=ON in the backend .env): everyone but the admin sees the launch page.
-  // The admin area (incl. /admin/login) and public certificate checks stay reachable.
-  if (site.comingSoon && !isAdmin && !pathname.startsWith('/admin') && !pathname.startsWith('/verify/')) {
-    return <ComingSoonPage launchDate={site.launchDate} />;
-  }
+  if (site.loading) return <PageLoader />;
+  // COMING_SOON=ON in the backend .env: the whole site is this one page, whatever the address or account
+  if (site.comingSoon) return <ComingSoonPage launchDate={site.launchDate} />;
 
   return (
     <Routes>

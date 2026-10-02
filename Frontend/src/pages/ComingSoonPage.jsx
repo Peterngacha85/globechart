@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { GraduationCap, Hotel, MessagesSquare, Rocket, Sparkles, Store } from 'lucide-react';
 import { APP_NAME, Logo } from '../components/Shared/ui';
 
@@ -92,9 +91,8 @@ export default function ComingSoonPage({ launchDate }) {
           </section>
         </main>
 
-        <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-white/20 pt-5 text-xs text-white/70">
-          <span>© {new Date().getFullYear()} {APP_NAME.toUpperCase()}. All rights reserved.</span>
-          <Link to="/admin/login" className="hover:text-white hover:underline">Admin sign in</Link>
+        <footer className="border-t border-white/20 pt-5 text-center text-xs text-white/70">
+          © {new Date().getFullYear()} {APP_NAME.toUpperCase()}. All rights reserved.
         </footer>
       </div>
     </div>

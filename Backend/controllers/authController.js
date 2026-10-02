@@ -5,7 +5,7 @@ const { generateAccessToken, generateRefreshToken, verifyRefreshToken } = requir
 const { ApiError, asyncHandler, sendSuccess } = require('../utils/ApiError');
 const { randomCode, sha256 } = require('../utils/helpers');
 const { sendEmail } = require('../services/email');
-const { isClosedFor, comingSoonError } = require('../utils/comingSoon');
+const { isClosed, comingSoonError } = require('../utils/comingSoon');
 const {
   registerSchema,
   loginSchema,
@@ -58,7 +58,7 @@ async function updateUpline(referrer) {
 }
 
 exports.register = asyncHandler(async (req, res) => {
-  if (config.comingSoon.enabled) throw comingSoonError();
+  if (isClosed()) throw comingSoonError();
   const { username, email, phone, country, password, referralCode } = registerSchema.parse(req.body);
 
   const duplicate = await User.findOne({ $or: [{ username }, { phone }, ...(email ? [{ email }] : [])] }).select('username phone email');
@@ -85,12 +85,12 @@ exports.register = asyncHandler(async (req, res) => {
 });
 
 exports.login = asyncHandler(async (req, res) => {
+  if (isClosed()) throw comingSoonError();
   const { username, password, rememberMe } = loginSchema.parse(req.body);
 
   const user = await User.findOne({ username }).select('+password');
   if (!user || !(await user.comparePassword(password))) throw new ApiError(401, 'Invalid username or password');
   if (user.status === 'suspended' || user.status === 'banned') throw new ApiError(403, `Your account is ${user.status}`);
-  if (isClosedFor(user)) throw comingSoonError();
 
   user.lastLogin = new Date();
   user.loginCount += 1;
@@ -108,7 +108,7 @@ exports.refreshToken = asyncHandler(async (req, res) => {
   if (!user || user.tokenVersion !== decoded.tokenVersion || user.status === 'suspended' || user.status === 'banned') {
     throw new ApiError(401, 'User not found or inactive');
   }
-  if (isClosedFor(user)) throw comingSoonError();
+  if (isClosed()) throw comingSoonError();
 
   sendSuccess(res, { token: generateAccessToken(user), expiresIn: config.jwt.expire }, 'Token refreshed');
 });

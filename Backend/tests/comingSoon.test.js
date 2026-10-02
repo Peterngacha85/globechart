@@ -70,12 +70,15 @@ describe('coming soon mode', () => {
     }
   });
 
-  test('the admin can still sign in and work while ON', async () => {
+  test('the admin is closed out too while ON: no dashboard for anyone', async () => {
+    const admin = await makeAdmin(); // signed in while the site was open
     config.comingSoon.enabled = true;
-    const admin = await makeAdmin();
-    expect(admin.token).toBeTruthy();
-    await request(app).get('/api/admin/users').set(admin.auth).expect(200);
-    await request(app).get('/api/users/profile').set(admin.auth).expect(200);
+    const { config: env } = require('../config/env');
+    const login = await request(app).post('/api/auth/login').send({ username: env.admin.username, password: env.admin.password });
+    expect(login.status).toBe(503);
+    expect(login.body.comingSoon).toBe(true);
+    expect((await request(app).get('/api/admin/users').set(admin.auth)).status).toBe(503);
+    expect((await request(app).get('/api/users/profile').set(admin.auth)).status).toBe(503);
   });
 
   test('turning it OFF opens everything again', async () => {
