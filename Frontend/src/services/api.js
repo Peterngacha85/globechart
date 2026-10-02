@@ -32,6 +32,10 @@ const refreshAccessToken = () => {
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+    if (error.response?.status === 503 && error.response.data?.comingSoon) {
+      window.dispatchEvent(new Event('site:coming-soon'));
+      return Promise.reject(error);
+    }
     const original = error.config;
     const isAuthCall = original?.url?.startsWith('/auth/');
     if (error.response?.status === 401 && original && !original._retry && !isAuthCall && tokenStorage.get('refreshToken')) {

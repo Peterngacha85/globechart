@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const { verifyToken } = require('../config/jwt');
 const { ApiError, asyncHandler } = require('../utils/ApiError');
+const { isClosedFor, comingSoonError } = require('../utils/comingSoon');
 
 // Resolve the bearer token to a live user. Role and status always come from the database,
 // so suspending a user or changing a password takes effect immediately.
@@ -20,6 +21,7 @@ const protect = asyncHandler(async (req, res, next) => {
   if (user.status === 'suspended' || user.status === 'banned') {
     throw new ApiError(403, `Your account is ${user.status}`);
   }
+  if (isClosedFor(user)) throw comingSoonError();
   req.user = user;
   next();
 });

@@ -24,6 +24,11 @@ const apiLimiter = rateLimit({
 
 app.get('/api/health', (req, res) => res.json({ success: true, status: 'ok' }));
 
+// Public: tells the frontend whether to show the Coming Soon page (COMING_SOON / LAUNCH_DATE in .env)
+app.get('/api/site', (req, res) =>
+  res.json({ success: true, data: { comingSoon: config.comingSoon.enabled, launchDate: config.comingSoon.launchDate || null } })
+);
+
 app.use('/api', apiLimiter);
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/users', require('./routes/user.routes'));

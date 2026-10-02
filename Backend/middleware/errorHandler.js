@@ -27,12 +27,13 @@ const errorHandler = (err, req, res, next) => {
     message = 'Malformed JSON body';
   }
 
-  if (statusCode >= 500) {
+  // Coming Soon is an expected 503, not a crash: keep its message and don't log it
+  if (statusCode >= 500 && !err.comingSoon) {
     console.error(err);
     if (config.isProd) message = 'Internal server error';
   }
 
-  res.status(statusCode).json({ success: false, message, statusCode, ...(errors && { errors }) });
+  res.status(statusCode).json({ success: false, message, statusCode, ...(errors && { errors }), ...(err.comingSoon && { comingSoon: true }) });
 };
 
 module.exports = { notFound, errorHandler };

@@ -41,6 +41,21 @@ const schema = z.object({
   SMTP_USER: z.string().optional(),
   SMTP_PASSWORD: z.string().optional(),
   EMAIL_FROM: z.string().default('Globechart <no-reply@globechart.com>'),
+
+  // ON = members see the Coming Soon page and cannot sign up, sign in or use the API; the admin still can
+  COMING_SOON: z
+    .string()
+    .trim()
+    .default('OFF')
+    .refine((v) => /^(on|off|true|false|1|0|yes|no)?$/i.test(v), 'COMING_SOON must be ON or OFF')
+    .transform((v) => /^(on|true|1|yes)$/i.test(v)),
+  // Optional, shows a countdown on the Coming Soon page. e.g. 2026-11-01T09:00:00+03:00
+  LAUNCH_DATE: z
+    .string()
+    .trim()
+    .optional()
+    .refine((v) => !v || !Number.isNaN(Date.parse(v)), 'LAUNCH_DATE must be a date, e.g. 2026-11-01T09:00:00+03:00')
+    .transform((v) => (v ? new Date(v) : undefined)),
 });
 
 function loadConfig(env = process.env) {
@@ -102,6 +117,7 @@ function loadConfig(env = process.env) {
       password: e.SMTP_PASSWORD,
       from: e.EMAIL_FROM,
     },
+    comingSoon: { enabled: e.COMING_SOON, launchDate: e.LAUNCH_DATE },
   };
 }
 

@@ -49,6 +49,14 @@ Nothing is seeded and no admin is hardcoded. On every start the backend makes th
 - The admin password and email cannot be changed through the API; `.env` is the only source of truth.
 - In production the server rejects a weak `ADMIN_PASSWORD` (under 12 characters or a common default).
 
+### Coming Soon mode
+
+Set `COMING_SOON=ON` in the backend environment (on Render: **Environment** tab) to put the site behind a launch page. `OFF` (or leaving it out) opens the site. Render restarts the backend when an environment variable changes; locally, restart it yourself.
+
+- Everyone except the admin sees the Coming Soon page, which lists what's coming. Optional `LAUNCH_DATE` (with timezone, e.g. `2026-11-01T09:00:00+03:00`) adds a live countdown.
+- The server enforces it: sign-up, sign-in and every member API call answer `503` with `comingSoon: true`, and sockets refuse members. Existing members are signed out to the launch page.
+- The admin still signs in at `/admin/login` (linked in the page footer) and sees a banner reminding her the mode is on. Certificate checks (`/verify/<code>`), the health check and M-Pesa callbacks keep working.
+
 ### M-Pesa
 
 1. Development: `MPESA_MODE=simulate`. A deposit "confirms" itself after 2 seconds.
