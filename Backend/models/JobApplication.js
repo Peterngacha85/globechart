@@ -16,6 +16,7 @@ const jobApplicationSchema = new mongoose.Schema(
     locked: { type: Boolean, default: true },
 
     fee: { type: Number, required: true, min: 0 },
+    feeFromBonus: { type: Number, default: 0, min: 0 }, // part paid with spin credit; refunds go back there
     replyDeadline: { type: Date, required: true },
     decisionDeadline: { type: Date, required: true },
     respondedAt: Date, // first message from the business

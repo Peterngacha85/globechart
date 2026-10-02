@@ -4,6 +4,7 @@ const { ApiError } = require('../utils/ApiError');
 const WALLETS = {
   main: { balance: 'mainWallet.balance' },
   commission: { balance: 'commissionWallet.balance' },
+  bonus: { balance: 'bonusWallet.balance' },
 };
 
 // Atomic conditional debit: the balance check and the decrement are one database operation,

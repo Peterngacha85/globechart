@@ -14,6 +14,8 @@ import HotelPage from './pages/user/HotelPage';
 import JobsPage, { MemberChatPage } from './pages/user/JobsPage';
 import BusinessInbox, { BusinessChatPage } from './pages/business/BusinessInbox';
 import AdminChatJobs, { AdminChatPage } from './pages/admin/AdminChatJobs';
+import SpinPage from './pages/user/SpinPage';
+import AdminSpin from './pages/admin/AdminSpin';
 import RechargePage from './pages/user/RechargePage';
 import WithdrawPage from './pages/user/WithdrawPage';
 import HistoryPage from './pages/user/HistoryPage';
@@ -50,6 +52,7 @@ export default function App() {
           <Route path="hotels/:id" element={<HotelPage />} />
           <Route path="jobs" element={<JobsPage />} />
           <Route path="jobs/chat/:id" element={<MemberChatPage />} />
+          <Route path="spin" element={<SpinPage />} />
           <Route path="recharge" element={<RechargePage />} />
           <Route path="withdraw" element={<WithdrawPage />} />
           <Route path="history" element={<HistoryPage />} />
@@ -68,6 +71,7 @@ export default function App() {
           <Route path="hotels" element={<AdminHotels />} />
           <Route path="chat-jobs" element={<AdminChatJobs />} />
           <Route path="chat-jobs/chat/:id" element={<AdminChatPage />} />
+          <Route path="spin" element={<AdminSpin />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>
       </Route>

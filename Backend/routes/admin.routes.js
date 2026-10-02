@@ -2,6 +2,7 @@ const express = require('express');
 const admin = require('../controllers/adminController');
 const hotels = require('../controllers/hotelController');
 const chatJobs = require('../controllers/chatJobController');
+const spin = require('../controllers/spinController');
 const { protect, adminOnly } = require('../middleware/auth.middleware');
 
 const router = express.Router();
@@ -47,5 +48,7 @@ router.post('/chat-businesses', chatJobs.adminCreateBusiness);
 router.put('/chat-businesses/:id', chatJobs.adminUpdateBusiness);
 router.delete('/chat-businesses/:id', chatJobs.adminArchiveBusiness);
 router.get('/job-applications', chatJobs.adminListApplications);
+
+router.get('/spin/summary', spin.adminSummary);
 
 module.exports = router;

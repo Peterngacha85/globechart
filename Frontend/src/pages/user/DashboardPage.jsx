@@ -93,6 +93,7 @@ export default function DashboardPage() {
           <dl className="mt-4 space-y-3 text-sm">
             <div className="flex justify-between"><dt className="text-slate-500">Main wallet (deposits)</dt><dd className="font-bold">{formatKES(s?.mainBalance)}</dd></div>
             <div className="flex justify-between"><dt className="text-slate-500">Commission wallet</dt><dd className="font-bold text-emerald-600">{formatKES(s?.availableBalance)}</dd></div>
+            <div className="flex justify-between"><dt className="text-slate-500"><Link to="/dashboard/spin" className="hover:underline">Bonus credit (spins)</Link></dt><dd className="font-bold text-brand-600">{formatKES(s?.bonusBalance)}</dd></div>
             <div className="flex justify-between"><dt className="text-slate-500">Withdrawn today</dt><dd className="font-bold">{formatKES(s?.withdrawnToday)}</dd></div>
             <div className="flex justify-between"><dt className="text-slate-500">Transactions</dt><dd className="font-bold">{s?.transactions}</dd></div>
           </dl>

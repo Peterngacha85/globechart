@@ -2,7 +2,8 @@ const mongoose = require('mongoose');
 const Hotel = require('../models/Hotel');
 const HotelReview = require('../models/HotelReview');
 const Transaction = require('../models/Transaction');
-const { debit, credit } = require('./wallet');
+const { credit } = require('./wallet');
+const fees = require('./fees');
 const { runInTransaction } = require('../utils/dbTransaction');
 const { ApiError } = require('../utils/ApiError');
 const NotificationEmitter = require('../utils/notificationEmitter');
@@ -23,23 +24,8 @@ const releaseSlot = (hotelId, session) =>
   Hotel.updateOne({ _id: hotelId, slotsUsed: { $gt: 0 } }, { $inc: { slotsUsed: -1 } }, { session });
 
 async function refundFee(review, hotelName, session) {
-  const [tx] = await Transaction.create(
-    [
-      {
-        user: review.user,
-        type: 'refund',
-        wallet: 'main',
-        amount: review.fee,
-        status: 'completed',
-        completedAt: new Date(),
-        description: `Review fee refund: ${hotelName}`,
-        relatedReview: review._id,
-      },
-    ],
-    { session }
-  );
-  const user = await credit(review.user, 'main', review.fee, session);
-  return { tx, balance: user.mainWallet.balance };
+  const user = await fees.refundFee(review.user, review, { description: `Review fee refund: ${hotelName}`, relatedReview: review._id }, session);
+  return { balance: user.mainWallet.balance };
 }
 
 // Post-commit side effects: a failed notification must never undo a money movement
@@ -113,27 +99,17 @@ async function startReview(user, hotelId, io) {
         { session }
       );
 
-      let balance = user.mainWallet.balance;
-      if (hotel.reviewFee > 0) {
-        const updated = await debit(user._id, 'main', hotel.reviewFee, session);
-        await Transaction.create(
-          [
-            {
-              user: user._id,
-              type: 'review_fee',
-              wallet: 'main',
-              amount: hotel.reviewFee,
-              status: 'completed',
-              completedAt: new Date(),
-              description: `Review fee: ${hotel.name}`,
-              relatedReview: review._id,
-            },
-          ],
-          { session }
-        );
-        balance = updated.mainWallet.balance;
+      const paid = await fees.chargeFee(
+        user._id,
+        hotel.reviewFee,
+        { type: 'review_fee', description: `Review fee: ${hotel.name}`, relatedReview: review._id },
+        session
+      );
+      if (paid.fromBonus > 0) {
+        review.feeFromBonus = paid.fromBonus;
+        await review.save({ session });
       }
-      return { hotel, review, balance };
+      return { hotel, review, balance: paid.user.mainWallet.balance };
     });
   } catch (err) {
     if (err.code === 11000) throw new ApiError(409, 'You already have a review for this hotel'); // concurrent double tap

@@ -62,7 +62,8 @@ Password-reset emails are stubbed: the link is printed in the backend console un
 ## How money moves
 
 - **Main wallet**: M-Pesa deposits. Spent in the store. Not withdrawable.
-- **Commission wallet**: referral commissions from real product sales. Withdrawable (minimum and daily limit are admin settings).
+- **Commission wallet**: referral commissions from real product sales and approved hotel review bonuses. Withdrawable (minimum and daily limit are admin settings).
+- **Bonus credit**: lucky spin prizes. Not withdrawable, never expires. Spent first on hotel review fees and chat job unlocks (the main wallet covers the rest); a refunded fee goes back to the wallets it came from.
 - Product commission percentages (level 1/2/3, max 50% combined) are set per product. A referrer only earns while their account is active.
 - Balance changes are atomic (conditional updates inside database transactions), so a wallet can't be overspent by concurrent requests.
 
@@ -91,11 +92,19 @@ Rules: one open application per member; one application per member per business 
 
 Every refund (chat jobs and hotel reviews) is a `refund` transaction with the reason in its description. Members see them under **History → Refunds**, on the dashboard's **My refunds** card (with fees still awaiting a result), and in **Chat Jobs → My applications**.
 
+## Lucky spin
+
+Every member gets **3 free spins a day** (reset at midnight Africa/Nairobi). Each spin wins bonus credit: Ksh 30 (70%), 50 (20%), 100 (7%), 200 (2%) or 300 (1%), an average of Ksh 45. The server draws a cryptographic random number from 0 to 9,999 and the prize is the range it falls in; the wheel's slices are sized by those chances and it stops where the roll landed. Every spin's roll is stored and shown in the member's history.
+
+The admin sets a **daily prize budget** for all members (`spin_daily_budget`, default Ksh 2,000) in **Admin → Lucky Spin**. Spins pause for the day once less than the top prize is left, so the published odds never change. The page also shows credit given, credit spent on fees, and credit members still hold.
+
+Spins are free on purpose. Paying to spin for a prize of value (cash or credit that pays for things) is gambling and needs a BCLB licence in Kenya.
+
 ## Not built (yet)
 
-The reference screenshots also showed other earning tasks (Y99, AI training), an activation-fee referral scheme, real-money roulette, and a "just withdrawn" popup. These are not built. Any payout must be funded by a real outside source (as hotel bonuses are funded by the admin and hotels), never by other members' fees, or it becomes a pyramid/Ponzi structure and users lose money.
+The reference screenshots also showed other earning tasks (Y99, AI training), an activation-fee referral scheme, paid spins / real-money roulette, and a "just withdrawn" popup. These are not built. Any payout must be funded by a real outside source (as hotel bonuses are funded by the admin and hotels), never by other members' fees, or it becomes a pyramid/Ponzi structure and users lose money.
 
 ## API
 
 All routes are under `/api`. See `03-API-ENDPOINTS.md` for the original design; the implemented differences are:
-`/users/team`, `/finance/limits`, `/finance/deposits/:id`, `/finance/transactions`, `/finance/mpesa/callback`, `/dashboard/*`, `/hotels/*`, `/chat-jobs/*`, and the admin routes for users, withdrawals, products, hotels, hotel reviews, chat businesses, job applications, settings and analytics.
+`/users/team`, `/finance/limits`, `/finance/deposits/:id`, `/finance/transactions`, `/finance/mpesa/callback`, `/dashboard/*`, `/hotels/*`, `/chat-jobs/*`, `/spin`, and the admin routes for users, withdrawals, products, hotels, hotel reviews, chat businesses, job applications, spin summary, settings and analytics.

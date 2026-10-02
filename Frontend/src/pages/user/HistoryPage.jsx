@@ -7,9 +7,9 @@ import { formatDateTime, formatKESShort } from '../../utils/format';
 
 const TYPE_LABEL = {
   deposit: 'Deposit', withdrawal: 'Withdrawal', purchase: 'Purchase', commission: 'Commission', refund: 'Refund',
-  review_fee: 'Review fee', review_bonus: 'Review bonus', unlock_fee: 'Unlock fee',
+  review_fee: 'Review fee', review_bonus: 'Review bonus', unlock_fee: 'Unlock fee', spin_prize: 'Spin prize',
 };
-const CREDIT_TYPES = ['deposit', 'commission', 'refund', 'review_bonus'];
+const CREDIT_TYPES = ['deposit', 'commission', 'refund', 'review_bonus', 'spin_prize'];
 
 function Withdrawals() {
   const [page, setPage] = useState(1);

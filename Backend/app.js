@@ -33,6 +33,7 @@ app.use('/api/finance', require('./routes/finance.routes'));
 app.use('/api/products', require('./routes/products.routes'));
 app.use('/api/hotels', require('./routes/hotels.routes'));
 app.use('/api/chat-jobs', require('./routes/chatJobs.routes'));
+app.use('/api/spin', require('./routes/spin.routes'));
 app.use('/api/admin', require('./routes/admin.routes'));
 
 app.use(notFound);

@@ -51,6 +51,7 @@ exports.summary = asyncHandler(async (req, res) => {
   sendSuccess(res, {
     availableBalance: u.commissionWallet.balance,
     mainBalance: u.mainWallet.balance,
+    bonusBalance: u.bonusWallet?.balance || 0,
     todaysEarnings: (today[0]?.total || 0) + (reviewBonusToday[0]?.total || 0),
     totalWithdrawn: u.totalWithdrawn,
     lifetimeConfirmed: u.commissionWallet.totalEarned,

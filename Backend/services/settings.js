@@ -6,6 +6,7 @@ const DEFAULTS = {
   max_withdrawal_daily: { value: 100000, category: 'withdrawal', description: 'Maximum withdrawn per user per 24h (KES)' },
   min_deposit: { value: 50, category: 'deposit', description: 'Minimum M-Pesa deposit (KES)' },
   max_deposit: { value: 50000, category: 'deposit', description: 'Maximum M-Pesa deposit (KES)' },
+  spin_daily_budget: { value: 2000, category: 'spin', description: 'Lucky spin: total prizes paid per day, all members (KES)' },
 };
 
 async function getSettings() {

@@ -2,8 +2,7 @@ const mongoose = require('mongoose');
 const Business = require('../models/Business');
 const JobApplication = require('../models/JobApplication');
 const ChatMessage = require('../models/ChatMessage');
-const Transaction = require('../models/Transaction');
-const { debit, credit } = require('./wallet');
+const fees = require('./fees');
 const { runInTransaction } = require('../utils/dbTransaction');
 const { ApiError } = require('../utils/ApiError');
 const NotificationEmitter = require('../utils/notificationEmitter');
@@ -53,22 +52,8 @@ async function closeWithRefund(filter, outcome, { decidedBy, note } = {}) {
     await Business.updateOne({ _id: app.business._id, pendingCount: { $gt: 0 } }, { $inc: { pendingCount: -1 } }, { session });
     let balance;
     if (app.fee > 0) {
-      await Transaction.create(
-        [
-          {
-            user: app.user,
-            type: 'refund',
-            wallet: 'main',
-            amount: app.fee,
-            status: 'completed',
-            completedAt: now,
-            description: `Refund: ${app.business.name} unlock fee (${REFUND_REASON[outcome]})`,
-            relatedApplication: app._id,
-          },
-        ],
-        { session }
-      );
-      balance = (await credit(app.user, 'main', app.fee, session)).mainWallet.balance;
+      const tx = { description: `Refund: ${app.business.name} unlock fee (${REFUND_REASON[outcome]})`, relatedApplication: app._id };
+      balance = (await fees.refundFee(app.user, app, tx, session)).mainWallet.balance;
     }
     return { app, balance };
   });
@@ -151,26 +136,17 @@ async function unlock(user, businessId, io) {
         { session }
       );
 
-      let balance = user.mainWallet.balance;
-      if (business.unlockFee > 0) {
-        balance = (await debit(user._id, 'main', business.unlockFee, session)).mainWallet.balance;
-        await Transaction.create(
-          [
-            {
-              user: user._id,
-              type: 'unlock_fee',
-              wallet: 'main',
-              amount: business.unlockFee,
-              status: 'completed',
-              completedAt: new Date(),
-              description: `Unlock fee: ${business.name}`,
-              relatedApplication: app._id,
-            },
-          ],
-          { session }
-        );
+      const paid = await fees.chargeFee(
+        user._id,
+        business.unlockFee,
+        { type: 'unlock_fee', description: `Unlock fee: ${business.name}`, relatedApplication: app._id },
+        session
+      );
+      if (paid.fromBonus > 0) {
+        app.feeFromBonus = paid.fromBonus;
+        await app.save({ session });
       }
-      return { business, app, balance };
+      return { business, app, balance: paid.user.mainWallet.balance };
     });
   } catch (err) {
     if (err.code === 11000) throw new ApiError(409, 'You already have an open application'); // concurrent double tap

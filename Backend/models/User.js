@@ -43,6 +43,11 @@ const userSchema = new mongoose.Schema(
       balance: { type: Number, default: 0, min: 0 },
       totalEarned: { type: Number, default: 0 },
     },
+    // Lucky spin prizes. Not withdrawable; spent first on hotel review and chat job fees.
+    bonusWallet: {
+      balance: { type: Number, default: 0, min: 0 },
+      totalWon: { type: Number, default: 0 },
+    },
     totalWithdrawn: { type: Number, default: 0 },
 
     mpesaPhone: String,

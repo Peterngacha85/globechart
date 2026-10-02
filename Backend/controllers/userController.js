@@ -21,6 +21,7 @@ const profilePayload = (user, referrer, directReferrals) => ({
   mpesaPhone: user.mpesaPhone,
   mainWallet: user.mainWallet,
   commissionWallet: user.commissionWallet,
+  bonusWallet: { balance: user.bonusWallet?.balance || 0, totalWon: user.bonusWallet?.totalWon || 0 },
   totalWithdrawn: user.totalWithdrawn,
   referredBy: referrer ? { username: referrer.username, country: referrer.country } : null,
   directReferrals,

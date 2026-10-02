@@ -5,11 +5,12 @@ const transactionSchema = new mongoose.Schema(
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     type: {
       type: String,
-      enum: ['deposit', 'withdrawal', 'purchase', 'commission', 'refund', 'review_fee', 'review_bonus', 'unlock_fee'],
+      enum: ['deposit', 'withdrawal', 'purchase', 'commission', 'refund', 'review_fee', 'review_bonus', 'unlock_fee', 'spin_prize'],
       required: true,
     },
-    // Which wallet the money moved in: deposits/purchases hit "main", commissions/withdrawals hit "commission"
-    wallet: { type: String, enum: ['main', 'commission'], required: true },
+    // Which wallet the money moved in: deposits/purchases hit "main", commissions/withdrawals hit "commission",
+    // spin prizes hit "bonus" (spendable on fees only)
+    wallet: { type: String, enum: ['main', 'commission', 'bonus'], required: true },
     amount: { type: Number, required: true, min: 0 },
     currency: { type: String, default: 'KES' },
     status: { type: String, enum: ['pending', 'completed', 'failed', 'cancelled'], default: 'pending' },

@@ -27,8 +27,8 @@ function StartModal({ hotel, onClose, onDone }) {
   const toast = useToast();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const balance = user.mainWallet.balance;
-  const short = balance < hotel.reviewFee;
+  const bonus = user.bonusWallet?.balance || 0;
+  const short = user.mainWallet.balance + bonus < hotel.reviewFee;
 
   const start = async () => {
     setBusy(true);
@@ -49,7 +49,8 @@ function StartModal({ hotel, onClose, onDone }) {
       <dl className="mt-4 space-y-2 rounded-2xl bg-brand-50 p-4 text-sm">
         <div className="flex justify-between"><dt>Review fee (now)</dt><dd className="font-bold">{formatKESShort(hotel.reviewFee)}</dd></div>
         <div className="flex justify-between"><dt>Bonus after approval</dt><dd className="font-bold text-emerald-700">{formatKESShort(hotel.reviewBonus)}</dd></div>
-        <div className="flex justify-between"><dt>Main wallet balance</dt><dd className={`font-bold ${short ? 'text-rose-600' : ''}`}>{formatKESShort(balance)}</dd></div>
+        <div className="flex justify-between"><dt>Bonus credit (used first)</dt><dd className="font-bold">{formatKESShort(bonus)}</dd></div>
+        <div className="flex justify-between"><dt>Main wallet balance</dt><dd className={`font-bold ${short ? 'text-rose-600' : ''}`}>{formatKESShort(user.mainWallet.balance)}</dd></div>
       </dl>
       <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-slate-600">
         <li>You must submit <b>from the hotel</b> (within {hotel.radiusMeters} m) within <b>{hotel.reservationHours} hours</b>.</li>
