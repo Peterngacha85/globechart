@@ -97,6 +97,10 @@ export default function SpinPage() {
 
   if (loading) return <PageLoader />;
   if (!data) return <ErrorNote message={error} onRetry={reload} />;
+  // While the server is mid-deploy it can briefly answer in an older format without the wheel
+  if (!Array.isArray(data.wheel) || !Array.isArray(data.odds)) {
+    return <ErrorNote message="The spin wheel is being updated. Please refresh in a minute." onRetry={reload} />;
+  }
 
   const canSpin = data.spinsLeft > 0 && data.prizesAvailable && !spinning;
 
