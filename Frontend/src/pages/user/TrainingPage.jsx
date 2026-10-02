@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Award, CalendarDays, GraduationCap, MapPin, Ticket, Users } from 'lucide-react';
+import { Award, CalendarDays, GraduationCap, MapPin, Rocket, Ticket, Users } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import useFetch from '../../hooks/useFetch';
 import api, { errorMessage } from '../../services/api';
 import { EmptyState, ErrorNote, Modal, PageHeader, PageLoader, Spinner, StatusChip } from '../../components/Shared/ui';
-import { formatDateTime, formatKESShort } from '../../utils/format';
+import { PROGRAMS, formatDateTime, formatKESShort } from '../../utils/format';
 
 const REG_LABEL = { registered: 'Booked', attended: 'Attended', absent: 'Did not attend', cancelled: 'Cancelled · refunded' };
 
@@ -46,8 +46,8 @@ function RegisterModal({ training, cancelHours, onClose, onDone }) {
       </dl>
       <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-slate-600">
         <li>You get a ticket code. Show it at the door to be checked in.</li>
-        <li>Can't make it? Cancel at least <b>{cancelHours} hours</b> before the class for a full refund. Later cancellations and no-shows are not refunded.</li>
-        <li>If the class is cancelled by the organiser, you are refunded automatically.</li>
+        <li>Can't make it? Cancel at least <b>{cancelHours} hours</b> before the session for a full refund. Later cancellations and no-shows are not refunded.</li>
+        <li>If the session is cancelled by the organiser, you are refunded automatically.</li>
         <li>Attendees can receive a certificate with a code anyone can verify.</li>
       </ul>
       <div className="mt-3"><ErrorNote message={error} /></div>
@@ -63,8 +63,8 @@ function RegisterModal({ training, cancelHours, onClose, onDone }) {
   );
 }
 
-function Upcoming({ onBooked }) {
-  const { data, loading, error, reload } = useFetch('/trainings');
+function Upcoming({ program, onBooked }) {
+  const { data, loading, error, reload } = useFetch('/trainings', { program });
   const [booking, setBooking] = useState(null);
   if (loading) return <PageLoader />;
   return (
@@ -92,16 +92,16 @@ function Upcoming({ onBooked }) {
             </article>
           ))}
         </div>
-      ) : <div className="card"><EmptyState icon={GraduationCap} title="No classes scheduled" text="New prompt-writing classes will appear here." /></div>}
+      ) : <div className="card"><EmptyState icon={GraduationCap} title="No sessions scheduled" text="New sessions will appear here." /></div>}
       {booking && <RegisterModal training={booking} cancelHours={data.cancelHours} onClose={() => setBooking(null)} onDone={() => { setBooking(null); reload(); onBooked(); }} />}
     </>
   );
 }
 
-function MyTickets() {
+function MyTickets({ program }) {
   const toast = useToast();
   const { refreshUser } = useAuth();
-  const { data, loading, error, reload } = useFetch('/trainings/my', { limit: 50 });
+  const { data, loading, error, reload } = useFetch('/trainings/my', { limit: 50, program });
   const [busy, setBusy] = useState('');
 
   const cancel = async (r) => {
@@ -155,25 +155,26 @@ function MyTickets() {
             );
           })}
         </div>
-      ) : <div className="card"><EmptyState icon={Ticket} title="No bookings yet" text="Book a class to get your ticket." /></div>}
+      ) : <div className="card"><EmptyState icon={Ticket} title="No bookings yet" text="Book a session to get your ticket." /></div>}
     </>
   );
 }
 
-export default function TrainingPage() {
+export default function TrainingPage({ program = 'ai_prompt' }) {
   const [tab, setTab] = useState('upcoming');
+  const info = PROGRAMS[program];
   return (
     <div className="space-y-5">
-      <PageHeader icon={GraduationCap} title="AI Prompt Training" subtitle="In-person classes on writing prompts for AI. Book a seat, attend, and earn a certificate." />
+      <PageHeader icon={program === 'y99' ? Rocket : GraduationCap} title={info.label} subtitle={info.subtitle} />
       <div className="flex gap-2">
-        {[['upcoming', 'Upcoming classes'], ['mine', 'My tickets']].map(([key, label]) => (
+        {[['upcoming', 'Upcoming sessions'], ['mine', 'My tickets']].map(([key, label]) => (
           <button key={key} onClick={() => setTab(key)}
             className={`rounded-full px-4 py-2 text-sm font-bold ring-1 transition ${tab === key ? 'bg-brand-nav text-white ring-transparent shadow-glow' : 'bg-white text-slate-700 ring-brand-100 hover:bg-brand-50'}`}>
             {label}
           </button>
         ))}
       </div>
-      {tab === 'upcoming' ? <Upcoming onBooked={() => setTab('mine')} /> : <MyTickets />}
+      {tab === 'upcoming' ? <Upcoming program={program} onBooked={() => setTab('mine')} /> : <MyTickets program={program} />}
     </div>
   );
 }

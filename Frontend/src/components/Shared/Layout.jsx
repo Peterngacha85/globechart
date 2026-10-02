@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   Bell, ChevronRight, CreditCard, GraduationCap, History, Home, Hotel, Layers, LayoutDashboard, LogOut, Menu, MessagesSquare, Package, PackageOpen,
-  Send, Settings, ShoppingBag, Sparkles, Store, UserRound, Users, Wallet, X,
+  Rocket, Send, Settings, ShoppingBag, Sparkles, Store, UserRound, Users, Wallet, X,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLive } from '../../context/LiveContext';
@@ -24,6 +24,7 @@ const USER_NAV = [
     { to: '/dashboard/jobs', label: 'Chat Jobs', icon: MessagesSquare },
     { to: '/dashboard/spin', label: 'Lucky Spin', icon: Sparkles },
     { to: '/dashboard/training', label: 'AI Prompt Training', icon: GraduationCap },
+    { to: '/dashboard/y99', label: 'Y99 Earn Program', icon: Rocket },
   ] },
   { group: 'Finance', items: [
     { to: '/dashboard/withdraw', label: 'Withdraw', icon: Send },
@@ -43,7 +44,7 @@ const ADMIN_NAV = [
     { to: '/admin/hotels', label: 'Hotel Reviews', icon: Hotel },
     { to: '/admin/chat-jobs', label: 'Chat Jobs', icon: MessagesSquare },
     { to: '/admin/spin', label: 'Lucky Spin', icon: Sparkles },
-    { to: '/admin/training', label: 'AI Prompt Training', icon: GraduationCap },
+    { to: '/admin/training', label: 'Training & Y99', icon: GraduationCap },
     { to: '/admin/settings', label: 'Settings', icon: Settings },
   ] },
 ];

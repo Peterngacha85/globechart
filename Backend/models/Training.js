@@ -1,8 +1,12 @@
 const mongoose = require('mongoose');
 
-// A physical prompt-writing class run by the admin. Members pay `fee` to register for a seat.
+const PROGRAMS = ['ai_prompt', 'y99'];
+
+// An in-person class run by the admin. Members pay `fee` to register for a seat.
+// program: ai_prompt = AI prompt-writing classes; y99 = the Y99 Earn Program (practical earning skills)
 const trainingSchema = new mongoose.Schema(
   {
+    program: { type: String, enum: PROGRAMS, default: 'ai_prompt', index: true },
     title: { type: String, required: true, trim: true, maxlength: 120 },
     description: { type: String, maxlength: 2000 },
     venue: { type: String, required: true, trim: true, maxlength: 200 },
@@ -31,3 +35,4 @@ trainingSchema.pre('validate', function seatsCoverRegistrations() {
 trainingSchema.index({ status: 1, startsAt: 1 });
 
 module.exports = mongoose.model('Training', trainingSchema);
+module.exports.PROGRAMS = PROGRAMS;

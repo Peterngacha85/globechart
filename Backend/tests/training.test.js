@@ -120,11 +120,34 @@ describe('cancelling', () => {
     expect(res.body.data.refunded).toBe(2);
     expect((await balances(a)).main).toBe(100);
     expect((await User.findById(b.id)).bonusWallet.balance).toBe(100); // back to bonus credit
-    expect((await Notification.findOne({ user: a.id, title: 'Training cancelled' })).message).toContain('Venue unavailable');
+    expect((await Notification.findOne({ user: a.id, title: 'Session cancelled' })).message).toContain('Venue unavailable');
     expect((await request(app).post(`/api/admin/trainings/${id}/cancel`).set(admin.auth).send({ reason: 'again' })).status).toBe(409);
 
     const dash = await request(app).get('/api/dashboard/summary').set(a.auth);
     expect(dash.body.data.refunds).toEqual({ total: 100, count: 1 });
+  });
+});
+
+describe('programmes', () => {
+  test('AI prompt and Y99 sessions are listed separately, defaulting to AI prompt', async () => {
+    const admin = await makeAdmin();
+    const alice = await makeUser('alice');
+    await fund(alice, 100);
+    const ai = await makeTraining(admin);
+    const y99 = await makeTraining(admin, { program: 'y99', title: 'Y99: Start a side hustle' });
+    expect((await request(app).post('/api/admin/trainings').set(admin.auth).send({ program: 'other', title: 'X class', venue: 'Somewhere', startsAt: inHours(48), fee: 100, seats: 5 })).status).toBe(422);
+
+    const onlyY99 = await request(app).get('/api/trainings?program=y99').set(alice.auth);
+    expect(onlyY99.body.data.trainings.map((t) => [t.trainingId, t.program])).toEqual([[y99, 'y99']]);
+    const onlyAi = await request(app).get('/api/trainings?program=ai_prompt').set(alice.auth);
+    expect(onlyAi.body.data.trainings.map((t) => t.trainingId)).toEqual([ai]);
+    expect((await request(app).get('/api/trainings').set(alice.auth)).body.data.trainings).toHaveLength(2);
+
+    await register(alice, y99).expect(201);
+    expect((await Notification.findOne({ user: alice.id, title: 'Training seat booked' })).actionUrl).toBe('/dashboard/y99');
+    expect((await request(app).get('/api/trainings/my?program=y99').set(alice.auth)).body.data.registrations).toHaveLength(1);
+    expect((await request(app).get('/api/trainings/my?program=ai_prompt').set(alice.auth)).body.data.registrations).toHaveLength(0);
+    expect((await request(app).get('/api/admin/trainings?program=y99').set(admin.auth)).body.data.trainings).toHaveLength(1);
   });
 });
 

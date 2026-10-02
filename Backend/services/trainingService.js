@@ -9,11 +9,14 @@ const NotificationEmitter = require('../utils/notificationEmitter');
 
 const CANCEL_HOURS = 24;
 
+// Where a member's notification should take them for each programme
+const programPath = (program) => (program === 'y99' ? '/dashboard/y99' : '/dashboard/training');
+
 async function notifySafely(io, userId, notification, balance) {
   try {
     const notifier = new NotificationEmitter(io);
     if (balance !== undefined) notifier.emitBalanceUpdate(userId, balance);
-    await notifier.notifyUser(userId, { category: 'transaction', actionUrl: '/dashboard/training', actionLabel: 'My training', ...notification });
+    await notifier.notifyUser(userId, { category: 'transaction', actionUrl: '/dashboard/training', actionLabel: 'My tickets', ...notification });
   } catch (err) {
     console.error('Training notification failed:', err.message);
   }
@@ -70,6 +73,7 @@ async function register(user, trainingId, io) {
       title: 'Training seat booked',
       message: `${training.title}, ${training.venue}. Your ticket code is ${reg.ticketCode}. Show it at the door.`,
       type: 'success',
+      actionUrl: programPath(training.program),
     },
     balance
   );
@@ -97,7 +101,7 @@ async function cancelOne(filter, cancelledBy, session) {
 /** The member cancels; refunded only if the class is at least 24 hours away. */
 async function cancelByMember(user, registrationId, io) {
   validId(registrationId, 'Registration');
-  const reg = await TrainingRegistration.findOne({ _id: registrationId, user: user._id }).populate('training', 'startsAt title');
+  const reg = await TrainingRegistration.findOne({ _id: registrationId, user: user._id }).populate('training', 'startsAt title program');
   if (!reg) throw new ApiError(404, 'Registration not found');
   if (reg.status !== 'registered') throw new ApiError(409, 'This registration can no longer be cancelled');
   if (reg.training.startsAt.getTime() - Date.now() < CANCEL_HOURS * 60 * 60 * 1000) {
@@ -106,7 +110,12 @@ async function cancelByMember(user, registrationId, io) {
 
   const done = await runInTransaction((session) => cancelOne({ _id: reg._id }, 'member', session));
   if (!done) throw new ApiError(409, 'This registration can no longer be cancelled');
-  await notifySafely(io, user._id, { title: 'Registration cancelled', message: `Your Ksh ${done.reg.fee} for ${reg.training.title} was refunded.`, type: 'info' }, done.balance);
+  await notifySafely(
+    io,
+    user._id,
+    { title: 'Registration cancelled', message: `Your Ksh ${done.reg.fee} for ${reg.training.title} was refunded.`, type: 'info', actionUrl: programPath(reg.training.program) },
+    done.balance
+  );
   return done.reg;
 }
 
@@ -125,7 +134,12 @@ async function cancelTraining(trainingId, reason, io) {
     await notifySafely(
       io,
       done.reg.user,
-      { title: 'Training cancelled', message: `${training.title} was cancelled: ${reason}. Your Ksh ${done.reg.fee} was refunded.`, type: 'warning' },
+      {
+        title: 'Session cancelled',
+        message: `${training.title} was cancelled: ${reason}. Your Ksh ${done.reg.fee} was refunded.`,
+        type: 'warning',
+        actionUrl: programPath(training.program),
+      },
       done.balance
     );
   }
@@ -193,6 +207,7 @@ async function certify(trainingId, registrationId, io) {
     title: 'Certificate issued',
     message: `Congratulations! Your certificate for ${training.title} is ready. Verification code: ${code}.`,
     type: 'success',
+    actionUrl: programPath(training.program),
   });
   return reg;
 }

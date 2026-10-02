@@ -8,8 +8,12 @@ const { paginate } = require('../utils/helpers');
 const { round2 } = require('../utils/money');
 const trainings = require('../services/trainingService');
 
+// ?program=ai_prompt|y99 narrows a list to one programme; anything else means all
+const programFilter = (query) => (Training.PROGRAMS.includes(query.program) ? { program: query.program } : {});
+
 const trainingPayload = (t) => ({
   trainingId: t._id,
+  program: t.program,
   title: t.title,
   description: t.description,
   venue: t.venue,
@@ -40,7 +44,7 @@ const registrationPayload = (r) =>
 
 // ---------- Members ----------
 exports.list = asyncHandler(async (req, res) => {
-  const upcoming = await Training.find({ status: 'scheduled', startsAt: { $gt: new Date() } }).sort('startsAt').limit(50);
+  const upcoming = await Training.find({ ...programFilter(req.query), status: 'scheduled', startsAt: { $gt: new Date() } }).sort('startsAt').limit(50);
   const mine = await TrainingRegistration.find({ user: req.user._id, training: { $in: upcoming.map((t) => t._id) }, locked: true });
   const byTraining = new Map(mine.map((r) => [String(r.training), r]));
   sendSuccess(res, {
@@ -52,6 +56,8 @@ exports.list = asyncHandler(async (req, res) => {
 exports.mine = asyncHandler(async (req, res) => {
   const { page, limit, skip } = paginate(req.query, 20);
   const filter = { user: req.user._id };
+  const byProgram = programFilter(req.query);
+  if (byProgram.program) filter.training = { $in: await Training.find(byProgram).distinct('_id') };
   const [total, items] = await Promise.all([
     TrainingRegistration.countDocuments(filter),
     TrainingRegistration.find(filter).sort('-createdAt').skip(skip).limit(limit).populate('training'),
@@ -93,6 +99,7 @@ exports.verifyCertificate = asyncHandler(async (req, res) => {
 
 // ---------- Admin ----------
 const trainingFields = {
+  program: z.enum(Training.PROGRAMS).optional(),
   title: z.string().trim().min(3).max(120),
   description: z.string().trim().max(2000).optional(),
   venue: z.string().trim().min(3).max(200),
@@ -105,7 +112,7 @@ const trainingFields = {
 
 exports.adminList = asyncHandler(async (req, res) => {
   const { page, limit, skip } = paginate(req.query);
-  const filter = {};
+  const filter = programFilter(req.query);
   if (['scheduled', 'completed', 'cancelled'].includes(req.query.status)) filter.status = req.query.status;
   const [total, items, fees, refunds] = await Promise.all([
     Training.countDocuments(filter),

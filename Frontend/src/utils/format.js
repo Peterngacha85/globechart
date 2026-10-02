@@ -14,6 +14,22 @@ export const greeting = (date = new Date()) => {
   return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
 };
 
+// In-person programmes that share the training system (sessions, tickets, attendance, certificates)
+export const PROGRAMS = {
+  ai_prompt: {
+    label: 'AI Prompt Training',
+    path: '/dashboard/training',
+    subtitle: 'In-person classes on writing prompts for AI. Book a seat, attend, and earn a certificate.',
+    defaultTitle: 'Prompt Writing for AI',
+  },
+  y99: {
+    label: 'Y99 Earn Program',
+    path: '/dashboard/y99',
+    subtitle: 'In-person sessions on practical skills you can earn from, as a day job or a side hustle.',
+    defaultTitle: 'Y99 Earn Program',
+  },
+};
+
 export const CATEGORY_LABELS = {
   ebook: 'eBooks',
   source_code: 'Source Code',

@@ -100,9 +100,9 @@ The admin sets a **daily prize budget** for all members (`spin_daily_budget`, de
 
 Spins are free on purpose. Paying to spin for a prize of value (cash or credit that pays for things) is gambling and needs a BCLB licence in Kenya.
 
-## AI prompt training
+## AI prompt training and the Y99 Earn Program
 
-The admin runs **in-person prompt-writing classes** and lists them in **Admin → AI Prompt Training** (title, venue, map link, start time, length, seats, fee). Members book a seat for the registration fee (default Ksh 100, bonus credit first) and get an 8-character **ticket code**.
+The admin runs two **in-person programmes** on the same system: **AI Prompt Training** (prompt-writing classes) and the **Y99 Earn Program** (practical skills members can earn from as a job or side hustle). Teaching happens at the venue, not in the app. Each session belongs to one programme; members see them on separate pages (`/dashboard/training` and `/dashboard/y99`). She lists sessions in **Admin → Training & Y99** (programme, title, venue, map link, start time, length, seats, fee). Members book a seat for the registration fee (default Ksh 100, bonus credit first) and get an 8-character **ticket code**.
 
 - A member who cancels at least **24 hours** before the class is refunded and the seat frees up; later cancellations and no-shows are not refunded.
 - If the admin cancels a session, everyone booked is refunded automatically, with her reason.
@@ -113,7 +113,7 @@ Practice prompts are done in class; members are not paid for prompts.
 
 ## Not built (yet)
 
-The reference screenshots also showed other earning tasks (Y99, paid AI-training tasks), an activation-fee referral scheme, paid spins / real-money roulette, and a "just withdrawn" popup. These are not built. Any payout must be funded by a real outside source (as hotel bonuses are funded by the admin and hotels), never by other members' fees, or it becomes a pyramid/Ponzi structure and users lose money.
+The reference screenshots also showed other earning tasks (paid AI-training tasks), an activation-fee referral scheme, paid spins / real-money roulette, and a "just withdrawn" popup. These are not built. Any payout must be funded by a real outside source (as hotel bonuses are funded by the admin and hotels), never by other members' fees, or it becomes a pyramid/Ponzi structure and users lose money.
 
 ## API
 

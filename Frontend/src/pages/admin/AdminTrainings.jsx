@@ -4,9 +4,9 @@ import useFetch from '../../hooks/useFetch';
 import api, { errorMessage } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import { EmptyState, ErrorNote, Modal, PageHeader, PageLoader, Pagination, Spinner, StatTile, StatusChip } from '../../components/Shared/ui';
-import { formatDateTime, formatKESShort } from '../../utils/format';
+import { PROGRAMS, formatDateTime, formatKESShort } from '../../utils/format';
 
-const EMPTY = { title: 'Prompt Writing for AI', description: '', venue: '', mapUrl: '', startsAt: '', durationMinutes: 120, fee: 100, seats: 30 };
+const EMPTY = { program: 'ai_prompt', title: PROGRAMS.ai_prompt.defaultTitle, description: '', venue: '', mapUrl: '', startsAt: '', durationMinutes: 120, fee: 100, seats: 30 };
 
 // <input type="datetime-local"> works in local time without a zone
 const toLocalInput = (d) => {
@@ -14,9 +14,11 @@ const toLocalInput = (d) => {
   return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 };
 
-function TrainingForm({ training, onClose, onSaved }) {
+function TrainingForm({ training, program, onClose, onSaved }) {
   const toast = useToast();
-  const [f, setF] = useState(training ? { ...EMPTY, ...training, description: training.description || '', mapUrl: training.mapUrl || '', startsAt: toLocalInput(training.startsAt) } : EMPTY);
+  const [f, setF] = useState(training
+    ? { ...EMPTY, ...training, description: training.description || '', mapUrl: training.mapUrl || '', startsAt: toLocalInput(training.startsAt) }
+    : { ...EMPTY, program, title: PROGRAMS[program].defaultTitle });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const set = (k) => (e) => setF((s) => ({ ...s, [k]: e.target.value }));
@@ -26,7 +28,7 @@ function TrainingForm({ training, onClose, onSaved }) {
     setBusy(true);
     setError('');
     const body = {
-      title: f.title.trim(), description: f.description.trim() || undefined, venue: f.venue.trim(), mapUrl: f.mapUrl.trim() || undefined,
+      program: f.program, title: f.title.trim(), description: f.description.trim() || undefined, venue: f.venue.trim(), mapUrl: f.mapUrl.trim() || undefined,
       startsAt: new Date(f.startsAt).toISOString(), durationMinutes: Number(f.durationMinutes), fee: Number(f.fee), seats: Number(f.seats),
     };
     try {
@@ -44,6 +46,11 @@ function TrainingForm({ training, onClose, onSaved }) {
     <Modal title={training ? 'Edit session' : 'New training session'} onClose={onClose}>
       <form onSubmit={submit} className="space-y-3">
         <ErrorNote message={error} />
+        <div><label className="label">Programme</label>
+          <select className="field" value={f.program}
+            onChange={(e) => setF((s) => ({ ...s, program: e.target.value, title: s.title === PROGRAMS[s.program].defaultTitle ? PROGRAMS[e.target.value].defaultTitle : s.title }))}>
+            {Object.entries(PROGRAMS).map(([key, p]) => <option key={key} value={key}>{p.label}</option>)}
+          </select></div>
         <div><label className="label">Title</label><input className="field" value={f.title} onChange={set('title')} required maxLength={120} /></div>
         <div><label className="label">What members will learn</label><textarea className="field" rows={3} value={f.description} onChange={set('description')} maxLength={2000} /></div>
         <div><label className="label">Venue</label><input className="field" value={f.venue} onChange={set('venue')} required maxLength={200} placeholder="e.g. Room 4, Hilton, Nairobi CBD" /></div>
@@ -157,14 +164,23 @@ function SessionModal({ trainingId, onClose, onChanged }) {
 
 export default function AdminTrainings() {
   const [page, setPage] = useState(1);
+  const [program, setProgram] = useState('');
   const [editing, setEditing] = useState(null);
   const [open, setOpen] = useState(null);
-  const { data, loading, error, reload } = useFetch('/admin/trainings', { page, limit: 20 });
+  const { data, loading, error, reload } = useFetch('/admin/trainings', { page, limit: 20, program: program || undefined });
 
   return (
     <div className="space-y-5">
-      <PageHeader icon={GraduationCap} title="AI Prompt Training" subtitle="In-person classes: bookings, door check-in and certificates."
+      <PageHeader icon={GraduationCap} title="Training & Y99" subtitle="In-person sessions for AI Prompt Training and the Y99 Earn Program: bookings, door check-in and certificates."
         action={<button className="btn-primary" onClick={() => setEditing('new')}><Plus className="h-4 w-4" /> New session</button>} />
+      <div className="flex flex-wrap gap-2">
+        {[['', 'All'], ...Object.entries(PROGRAMS).map(([key, p]) => [key, p.label])].map(([key, label]) => (
+          <button key={key || 'all'} onClick={() => { setProgram(key); setPage(1); }}
+            className={`rounded-full px-4 py-2 text-sm font-bold ring-1 transition ${program === key ? 'bg-brand-nav text-white ring-transparent shadow-glow' : 'bg-white text-slate-700 ring-brand-100 hover:bg-brand-50'}`}>
+            {label}
+          </button>
+        ))}
+      </div>
       <ErrorNote message={error} onRetry={reload} />
       {data && (
         <div className="grid gap-3 sm:grid-cols-3">
@@ -180,7 +196,10 @@ export default function AdminTrainings() {
             <tbody className="divide-y divide-brand-100/70">
               {data.trainings.map((t) => (
                 <tr key={t.trainingId}>
-                  <td className="px-4 py-3"><p className="font-bold">{t.title}</p><p className="text-xs text-slate-500">{t.venue} · {formatKESShort(t.fee)}</p></td>
+                  <td className="px-4 py-3">
+                    <span className={`chip mb-1 ${t.program === 'y99' ? 'bg-amber-100 text-amber-700' : 'bg-brand-100 text-brand-700'}`}>{PROGRAMS[t.program]?.label}</span>
+                    <p className="font-bold">{t.title}</p><p className="text-xs text-slate-500">{t.venue} · {formatKESShort(t.fee)}</p>
+                  </td>
                   <td className="px-4 py-3">{formatDateTime(t.startsAt)}</td>
                   <td className="px-4 py-3">{t.seatsTaken} / {t.seats}</td>
                   <td className="px-4 py-3">{t.attended}{t.absent > 0 && <span className="text-xs text-slate-500"> · {t.absent} absent</span>}</td>
@@ -193,10 +212,10 @@ export default function AdminTrainings() {
               ))}
             </tbody>
           </table>
-        ) : <EmptyState icon={GraduationCap} title="No sessions yet" text="Create your first prompt-writing class." action={<button className="btn-primary" onClick={() => setEditing('new')}>New session</button>} />}
+        ) : <EmptyState icon={GraduationCap} title="No sessions yet" text="Create your first session." action={<button className="btn-primary" onClick={() => setEditing('new')}>New session</button>} />}
         <Pagination page={page} totalPages={data?.totalPages} onChange={setPage} />
       </section>
-      {editing && <TrainingForm training={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); reload(); }} />}
+      {editing && <TrainingForm training={editing === 'new' ? null : editing} program={program || 'ai_prompt'} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); reload(); }} />}
       {open && <SessionModal trainingId={open} onClose={() => setOpen(null)} onChanged={reload} />}
     </div>
   );

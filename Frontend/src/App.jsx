@@ -56,7 +56,8 @@ export default function App() {
           <Route path="jobs" element={<JobsPage />} />
           <Route path="jobs/chat/:id" element={<MemberChatPage />} />
           <Route path="spin" element={<SpinPage />} />
-          <Route path="training" element={<TrainingPage />} />
+          <Route path="training" element={<TrainingPage key="ai_prompt" program="ai_prompt" />} />
+          <Route path="y99" element={<TrainingPage key="y99" program="y99" />} />
           <Route path="recharge" element={<RechargePage />} />
           <Route path="withdraw" element={<WithdrawPage />} />
           <Route path="history" element={<HistoryPage />} />
